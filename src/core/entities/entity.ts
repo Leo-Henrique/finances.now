@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  EntityData,
   EntityDataCreate,
   EntityDataCreateZodShape,
   EntityDataUpdate,
@@ -104,12 +105,38 @@ export abstract class Entity {
     return this.entity;
   }
 
-  public update(input: EntityDataUpdate<this>) {
+  public update<Input extends EntityDataUpdate<this>>(input: Input) {
     const { mountedFields } = this.mountFields(input);
-    const fields = { ...input, ...mountedFields.transformed };
+    const inputFields = { ...input, ...mountedFields.transformed };
+    const distinctFieldsFromOriginals = Object.keys(inputFields)
+      .filter(fieldName => {
+        const originalField =
+          this.entity[fieldName as keyof typeof this.entity];
 
-    Object.assign(this, fields);
+        return inputFields[fieldName] !== originalField;
+      })
+      .reduce(
+        (fields, distinctFieldName) => {
+          const newValue = inputFields[
+            distinctFieldName
+          ] as (typeof fields)[keyof typeof fields];
+
+          fields[distinctFieldName as keyof typeof fields] = newValue;
+
+          return fields;
+        },
+        {} as Required<{
+          [K in keyof (
+            | Required<Input>
+            | EntityData<this>
+          )]: EntityData<this>[K];
+        }>,
+      );
+
+    Object.assign(this, distinctFieldsFromOriginals);
 
     if ("updatedAt" in this) this.updatedAt = new Date();
+
+    return distinctFieldsFromOriginals;
   }
 }
