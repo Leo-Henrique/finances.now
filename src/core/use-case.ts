@@ -59,12 +59,16 @@ export abstract class UseCase<
   public async execute<Expected extends ExpectedResultOfEither>(input: Input) {
     type Result = InferResultOfEither<Output, Expected>;
 
+    let validInput: Input = input;
+
     if (this.inputSchema) {
       const validatedInput = this.validate(this.inputSchema, input);
 
       if (validatedInput.isLeft()) return left(validatedInput.reason) as Result;
+
+      validInput = validatedInput.result;
     }
 
-    return (await this.handle(input)) as Result;
+    return (await this.handle(validInput)) as Result;
   }
 }
