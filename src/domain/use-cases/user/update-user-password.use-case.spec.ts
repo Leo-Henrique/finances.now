@@ -29,7 +29,6 @@ describe("[Use Case] Update user password", () => {
     const updatedPassword = faker.internet.password();
     const { isRight, result } = await sut.execute<"success">({
       userId: user.entity.id.value,
-      targetUserId: user.entity.id.value,
       currentPassword,
       newPassword: updatedPassword,
     });
@@ -44,8 +43,7 @@ describe("[Use Case] Update user password", () => {
 
   it("should not be able to update password an non-existent user", async () => {
     const { isLeft, reason } = await sut.execute<"error">({
-      userId: user.entity.id.value,
-      targetUserId: faker.string.uuid(),
+      userId: faker.string.uuid(),
       currentPassword,
       newPassword: faker.internet.password(),
     });
@@ -54,22 +52,9 @@ describe("[Use Case] Update user password", () => {
     expect(reason).toBeInstanceOf(ResourceNotFoundError);
   });
 
-  it("should not be able to update password a user by another user", async () => {
-    const { isLeft, reason } = await sut.execute<"error">({
-      userId: faker.string.uuid(),
-      targetUserId: user.entity.id.value,
-      currentPassword,
-      newPassword: faker.internet.password(),
-    });
-
-    expect(isLeft()).toBeTruthy();
-    expect(reason).toBeInstanceOf(UnauthorizedError);
-  });
-
   it("should not be able to update password by providing an invalid current password", async () => {
     const { isLeft, reason } = await sut.execute<"error">({
       userId: user.entity.id.value,
-      targetUserId: user.entity.id.value,
       currentPassword: faker.internet.password(),
       newPassword: faker.internet.password(),
     });
@@ -81,7 +66,6 @@ describe("[Use Case] Update user password", () => {
   it("should not be able to update password by providing the same current password", async () => {
     const { isLeft, reason } = await sut.execute<"error">({
       userId: user.entity.id.value,
-      targetUserId: user.entity.id.value,
       currentPassword,
       newPassword: currentPassword,
     });
@@ -94,7 +78,6 @@ describe("[Use Case] Update user password", () => {
     it("should not be able to update an user password with invalid new password", async () => {
       const { isLeft, reason } = await sut.execute<"error">({
         userId: faker.string.uuid(),
-        targetUserId: user.entity.id.value,
         currentPassword,
         newPassword: faker.string.alphanumeric({ length: { min: 0, max: 5 } }),
       });

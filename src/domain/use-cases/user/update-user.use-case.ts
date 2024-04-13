@@ -1,20 +1,19 @@
 import { Either, left, right } from "@/core/either";
 import { UseCase } from "@/core/use-case";
 import { User, UserEntity } from "@/domain/entities/user.entity";
-import { ResourceNotFoundError, UnauthorizedError } from "@/domain/errors";
+import { ResourceNotFoundError } from "@/domain/errors";
 import { UserRepository } from "@/domain/repositories/user.repository";
 import { z } from "zod";
 
 const updateUserUseCaseSchema = z.object({
   userId: z.string().uuid(),
-  targetUserId: z.string().uuid(),
   data: UserEntity.updateSchema.pick({ name: true }),
 });
 
 type UpdateUserUseCaseInput = z.infer<typeof updateUserUseCaseSchema>;
 
 type UpdateUserUseCaseOutput = Either<
-  ResourceNotFoundError | UnauthorizedError,
+  ResourceNotFoundError,
   {
     user: User["serialized"];
   }
@@ -35,14 +34,11 @@ export class UpdateUserUseCase extends UseCase<
 
   protected async handle({
     userId,
-    targetUserId,
     data,
   }: UpdateUserUseCaseInput): Promise<UpdateUserUseCaseOutput> {
-    const user = await this.deps.userRepository.findUniqueById(targetUserId);
+    const user = await this.deps.userRepository.findUniqueById(userId);
 
     if (!user) return left(new ResourceNotFoundError("usuário"));
-
-    if (userId !== user.id.value) return left(new UnauthorizedError());
 
     const updatedFields = user.update(data);
 

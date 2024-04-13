@@ -24,7 +24,6 @@ describe("[Use Case] Delete user", () => {
   it("should be able to delete an user", async () => {
     const { isRight, result } = await sut.execute<"success">({
       userId: user.entity.id.value,
-      targetUserId: user.entity.id.value,
       currentPassword,
     });
 
@@ -35,8 +34,7 @@ describe("[Use Case] Delete user", () => {
 
   it("should not be able to delete an non-existent user", async () => {
     const { isLeft, reason } = await sut.execute<"error">({
-      userId: user.entity.id.value,
-      targetUserId: faker.string.uuid(),
+      userId: faker.string.uuid(),
       currentPassword,
     });
 
@@ -44,21 +42,9 @@ describe("[Use Case] Delete user", () => {
     expect(reason).toBeInstanceOf(ResourceNotFoundError);
   });
 
-  it("should not be able to delete a user by another user", async () => {
-    const { isLeft, reason } = await sut.execute<"error">({
-      userId: faker.string.uuid(),
-      targetUserId: user.entity.id.value,
-      currentPassword,
-    });
-
-    expect(isLeft()).toBeTruthy();
-    expect(reason).toBeInstanceOf(UnauthorizedError);
-  });
-
   it("should not be able to delete user by providing an invalid current password", async () => {
     const { isLeft, reason } = await sut.execute<"error">({
       userId: user.entity.id.value,
-      targetUserId: user.entity.id.value,
       currentPassword: faker.internet.password(),
     });
 
@@ -70,7 +56,6 @@ describe("[Use Case] Delete user", () => {
     it("should not be able to delete an user with invalid password", async () => {
       const { isLeft, reason } = await sut.execute<"error">({
         userId: faker.string.uuid(),
-        targetUserId: user.entity.id.value,
         currentPassword: faker.string.alphanumeric({
           length: { min: 0, max: 5 },
         }),

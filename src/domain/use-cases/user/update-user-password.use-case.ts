@@ -11,7 +11,6 @@ import { z } from "zod";
 
 const updateUserPasswordUseCaseSchema = z.object({
   userId: z.string().uuid(),
-  targetUserId: z.string().uuid(),
   currentPassword: UserEntity.createSchema.shape.password,
   newPassword: UserEntity.createSchema.shape.password,
 });
@@ -42,15 +41,12 @@ export class UpdateUserPasswordUseCase extends UseCase<
 
   protected async handle({
     userId,
-    targetUserId,
     currentPassword,
     newPassword,
   }: UpdateUserPasswordUseCaseInput): Promise<UpdateUserPasswordUseCaseOutput> {
-    const user = await this.deps.userRepository.findUniqueById(targetUserId);
+    const user = await this.deps.userRepository.findUniqueById(userId);
 
     if (!user) return left(new ResourceNotFoundError("usuário"));
-
-    if (userId !== user.id.value) return left(new UnauthorizedError());
 
     const isValidCurrentPassword = user.password.match(currentPassword);
 

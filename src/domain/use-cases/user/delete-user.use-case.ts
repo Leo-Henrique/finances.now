@@ -7,7 +7,6 @@ import { z } from "zod";
 
 const deleteUserUseCaseSchema = z.object({
   userId: z.string().uuid(),
-  targetUserId: z.string().uuid(),
   currentPassword: UserEntity.createSchema.shape.password,
 });
 
@@ -33,14 +32,11 @@ export class DeleteUserUseCase extends UseCase<
 
   protected async handle({
     userId,
-    targetUserId,
     currentPassword,
   }: DeleteUserUseCaseInput): Promise<DeleteUserUseCaseOutput> {
-    const user = await this.deps.userRepository.findUniqueById(targetUserId);
+    const user = await this.deps.userRepository.findUniqueById(userId);
 
     if (!user) return left(new ResourceNotFoundError("usuário"));
-
-    if (userId !== user.id.value) return left(new UnauthorizedError());
 
     const isValidCurrentPassword = user.password.match(currentPassword);
 
