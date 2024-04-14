@@ -6,9 +6,17 @@ import { EntityDataCreate } from "../@types/entity/entity-data-create";
 import { BaseEntity } from "./base-entity";
 import { UniqueEntityId } from "./unique-entity-id";
 
-type FakeUserCreate = EntityDataCreate<FakeUser>;
+type FakeUserCreate = EntityDataCreate<sut>;
 
-class FakeUser extends BaseEntity implements EntityDefinition<FakeUser> {
+class sut extends BaseEntity implements EntityDefinition<sut> {
+  defineFirstName() {
+    return { schema: z.string() };
+  }
+
+  defineEmail() {
+    return { schema: z.string().email(), readonly: true };
+  }
+
   public static get createSchema() {
     return new this().createSchema;
   }
@@ -20,14 +28,6 @@ class FakeUser extends BaseEntity implements EntityDefinition<FakeUser> {
   static create(input: FakeUserCreate) {
     return new this().createEntity(input);
   }
-
-  defineFirstName() {
-    return { schema: z.string() };
-  }
-
-  defineEmail() {
-    return { schema: z.string().email(), readonly: true };
-  }
 }
 
 const fakeUserInput: FakeUserCreate = {
@@ -37,7 +37,7 @@ const fakeUserInput: FakeUserCreate = {
 
 describe("[Core] Base Entity", () => {
   it("should be able to create an entity from the base entity", () => {
-    const user = FakeUser.create(fakeUserInput);
+    const user = sut.create(fakeUserInput);
 
     expect(user).toMatchObject(fakeUserInput);
     expect(user.id).toBeInstanceOf(UniqueEntityId);
@@ -49,12 +49,8 @@ describe("[Core] Base Entity", () => {
     const fieldNames = ["id", "updatedAt", "createdAt"];
 
     for (const fieldName of fieldNames) {
-      expect(Object.keys(FakeUser.createSchema.shape)).not.toHaveProperty(
-        fieldName,
-      );
-      expect(Object.keys(FakeUser.updateSchema.shape)).not.toHaveProperty(
-        fieldName,
-      );
+      expect(Object.keys(sut.createSchema.shape)).not.toHaveProperty(fieldName);
+      expect(Object.keys(sut.updateSchema.shape)).not.toHaveProperty(fieldName);
     }
   });
 });

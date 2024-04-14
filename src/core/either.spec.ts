@@ -20,15 +20,15 @@ class FakeError extends DomainError {
   }
 }
 
-type DoSomethingResponse = Either<FakeError, Record<string, string>>;
+type Response = Either<FakeError, Record<string, string>>;
 
-function doSomething(success: boolean): DoSomethingResponse {
+function sut(success: boolean): Response {
   return !success ? left(new FakeError()) : right({});
 }
 
 describe("[Core] Either", () => {
   it("should be able to return error on left flow", () => {
-    const result = doSomething(false) as ExtractError<DoSomethingResponse>;
+    const result = sut(false) as ExtractError<Response>;
 
     expect(result).toBeInstanceOf(Left);
     expect(result.isLeft()).toBeTruthy();
@@ -37,7 +37,7 @@ describe("[Core] Either", () => {
   });
 
   it("should be able to return success on right flow", () => {
-    const result = doSomething(true) as ExtractSuccess<DoSomethingResponse>;
+    const result = sut(true) as ExtractSuccess<Response>;
 
     expect(result).toBeInstanceOf(Right);
     expect(result.isRight()).toBeTruthy();
