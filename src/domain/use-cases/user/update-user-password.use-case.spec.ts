@@ -75,6 +75,20 @@ describe("[Use Case] Update user password", () => {
   });
 
   describe("[Business Roles] given invalid input", () => {
+    it("should not be able to update an user password without required input fields", async () => {
+      const { isLeft, reason } = await sut.execute<"error">({
+        // @ts-expect-error: field is required
+        userId: undefined,
+        // @ts-expect-error: field is required
+        currentPassword: undefined,
+        // @ts-expect-error: field is required
+        newPassword: undefined,
+      });
+
+      expect(isLeft()).toBeTruthy();
+      expect(reason).toBeInstanceOf(ValidationError);
+    });
+
     it("should not be able to update an user password with invalid new password", async () => {
       const { isLeft, reason } = await sut.execute<"error">({
         userId: faker.string.uuid(),

@@ -43,7 +43,19 @@ describe("[Use Case] Update user", () => {
   });
 
   describe("[Business Roles] given invalid input", () => {
-    it("should not be able to register an user with invalid name", async () => {
+    it("should not be able to update an user without required input fields", async () => {
+      const { isLeft, reason } = await sut.execute<"error">({
+        // @ts-expect-error: field is required
+        userId: undefined,
+        // @ts-expect-error: fields is required
+        data: {},
+      });
+
+      expect(isLeft()).toBeTruthy();
+      expect(reason).toBeInstanceOf(ValidationError);
+    });
+
+    it("should not be able to update an user with invalid name", async () => {
       const { isLeft, reason } = await sut.execute<"error">({
         userId: user.entity.id.value,
         data: {

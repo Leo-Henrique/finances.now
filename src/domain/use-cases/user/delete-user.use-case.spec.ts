@@ -53,6 +53,18 @@ describe("[Use Case] Delete user", () => {
   });
 
   describe("[Business Roles] given invalid input", () => {
+    it("should not be able to update an user password without required input fields", async () => {
+      const { isLeft, reason } = await sut.execute<"error">({
+        // @ts-expect-error: field is required
+        userId: undefined,
+        // @ts-expect-error: field is required
+        currentPassword: undefined,
+      });
+
+      expect(isLeft()).toBeTruthy();
+      expect(reason).toBeInstanceOf(ValidationError);
+    });
+
     it("should not be able to delete an user with invalid password", async () => {
       const { isLeft, reason } = await sut.execute<"error">({
         userId: faker.string.uuid(),
