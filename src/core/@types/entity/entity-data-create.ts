@@ -17,7 +17,9 @@ type StaticFieldNames<Class extends Entity> = ConditionalKeys<
 export type EntityDataCreateZodShape<Class extends Entity> = {
   [K in keyof Class as FieldName<K> extends StaticFieldNames<Class>
     ? never
-    : FieldName<K>]: GetFieldDefinition<Class[K], "schema">;
+    : FieldName<K>]: undefined extends GetFieldDefinition<Class[K], "default">
+    ? GetFieldDefinition<Class[K], "schema">
+    : z.ZodOptional<z.ZodDefault<GetFieldDefinition<Class[K], "schema">>>;
 };
 
 export type EntityDataCreate<Class extends Entity> = z.infer<

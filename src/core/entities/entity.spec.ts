@@ -1,26 +1,24 @@
 import { faker } from "@faker-js/faker";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { EntityDefinition } from "../@types/entity";
-import { EntityDataCreate } from "../@types/entity/entity-data-create";
+import {
+  EntityDataUpdateZodShape,
+  EntityDataZodShape,
+  EntityDefinition,
+  EntityInstance,
+} from "../@types/entity";
+import {
+  EntityDataCreate,
+  EntityDataCreateZodShape,
+} from "../@types/entity/entity-data-create";
 import { Entity } from "./entity";
 import { UniqueEntityId } from "./unique-entity-id";
 
-type FakeUserCreate = EntityDataCreate<FakeUser>;
+type FakeUser = EntityInstance<sut>;
 
-class FakeUser extends Entity implements EntityDefinition<FakeUser> {
-  public static get createSchema() {
-    return new this().createSchema;
-  }
+type FakeUserEntityCreate = EntityDataCreate<sut>;
 
-  public static get updateSchema() {
-    return new this().updateSchema;
-  }
-
-  public static create(input: FakeUserCreate) {
-    return new this().createEntity(input);
-  }
-
+class sut extends Entity implements EntityDefinition<sut> {
   defineId() {
     return {
       schema: z.instanceof(UniqueEntityId),
@@ -31,7 +29,11 @@ class FakeUser extends Entity implements EntityDefinition<FakeUser> {
   }
 
   defineFirstName() {
-    return { schema: z.string() };
+    return { schema: z.string().optional() };
+  }
+
+  defineLastName() {
+    return { schema: z.string().nullable(), default: null };
   }
 
   defineEmail() {
@@ -39,7 +41,11 @@ class FakeUser extends Entity implements EntityDefinition<FakeUser> {
   }
 
   definePassword() {
-    return { schema: z.number(), transform: (val: number) => val.toString() };
+    return {
+      schema: z.number(),
+      default: 123,
+      transform: (val: number) => val.toString(),
+    };
   }
 
   defineUpdatedAt() {
@@ -50,9 +56,25 @@ class FakeUser extends Entity implements EntityDefinition<FakeUser> {
       readonly: true,
     };
   }
+
+  public static get baseSchema() {
+    return new this().baseSchema;
+  }
+
+  public static get createSchema() {
+    return new this().createSchema;
+  }
+
+  public static get updateSchema() {
+    return new this().updateSchema;
+  }
+
+  public static create(input: FakeUserEntityCreate) {
+    return new this().createEntity(input);
+  }
 }
 
-const fakeUserInput: FakeUserCreate = {
+const fakeUserEntityInput: FakeUserEntityCreate = {
   firstName: faker.person.firstName(),
   email: faker.internet.email(),
   password: faker.number.int(),
@@ -61,94 +83,73 @@ const fakeUserInput: FakeUserCreate = {
 describe("[Core] Domain Entity", () => {
   describe("creation entity", () => {
     it("should be able to create an entity", () => {
-      const user = FakeUser.create(fakeUserInput);
+      const user = sut.create(fakeUserEntityInput);
 
       expect(user).toMatchObject({
-        ...fakeUserInput,
-        password: fakeUserInput.password.toString(),
+        ...fakeUserEntityInput,
+        password: fakeUserEntityInput.password?.toString(),
       });
     });
 
     it("should be able to create an entity applying field transformations", () => {
-      const user = FakeUser.create(fakeUserInput);
+      // eslint-disable-next-line
+      const { password, ...inputWithoutPassword } = fakeUserEntityInput;
 
-      expect(user.password).toEqual(fakeUserInput.password.toString());
+      const user = sut.create(fakeUserEntityInput);
+      const userWithDefaultPassword = sut.create(inputWithoutPassword);
+      const anotherUserWithDefaultPassword = sut.create({
+        ...fakeUserEntityInput,
+        password: undefined,
+      });
+
+      expect(user.password).toEqual(fakeUserEntityInput.password?.toString());
+      expect(userWithDefaultPassword.password).toEqual(
+        userWithDefaultPassword.password.toString(),
+      );
+      expect(anotherUserWithDefaultPassword.password).toEqual(
+        anotherUserWithDefaultPassword.password.toString(),
+      );
     });
 
     it("should be able to create an entity with default fields", () => {
-      const user = FakeUser.create(fakeUserInput);
+      const user = sut.create(fakeUserEntityInput);
 
       expect(user.id).toBeInstanceOf(UniqueEntityId);
     });
 
-    it("should be able to create schemas for creation and update", () => {
-      const user = FakeUser.create(fakeUserInput);
-
-      const getFieldNames = (condition: "creatable" | "upgradeable") => {
-        const proto = Object.getOwnPropertyNames(
-          FakeUser.prototype,
-        ) as (keyof EntityDefinition<FakeUser>)[];
-
-        return proto
-          .filter(name => name.startsWith("define"))
-          .map(name => {
-            const { readonly, static: _static } = (
-              user as unknown as EntityDefinition<FakeUser>
-            )[name]();
-            const fieldNamePascalCase = name.replace("define", "");
-            const fieldName =
-              fieldNamePascalCase[0].toLowerCase() +
-              fieldNamePascalCase.slice(1);
-
-            if (condition === "creatable" && !_static) return fieldName;
-            if (condition === "upgradeable" && !readonly) return fieldName;
-          })
-          .filter(Boolean);
-      };
-
-      expect(FakeUser.createSchema).toBeInstanceOf(z.ZodObject);
-      expect(FakeUser.updateSchema).toBeInstanceOf(z.ZodObject);
-      expect(Object.keys(FakeUser.createSchema.shape)).toEqual(
-        getFieldNames("creatable"),
-      );
-      expect(Object.keys(FakeUser.updateSchema.shape)).toEqual(
-        getFieldNames("upgradeable"),
-      );
-    });
-
     it("should be able to create an entity with fields inherited from sub classes", () => {
-      const defaultLastName = faker.person.lastName();
-      class AnotherFakeUser
-        extends FakeUser
-        implements EntityDefinition<AnotherFakeUser>
+      const defaultAge = faker.number.int({ min: 16, max: 150 });
+      class AnotherFakeUserEntity
+        extends sut
+        implements EntityDefinition<AnotherFakeUserEntity>
       {
-        static create(input: EntityDataCreate<AnotherFakeUser>) {
+        static create(input: EntityDataCreate<AnotherFakeUserEntity>) {
           return new this().createEntity(input);
         }
 
         defineFirstName() {
-          return { schema: z.string() };
+          return { schema: z.string().optional() };
         }
 
-        defineLastName() {
-          return { schema: z.string(), default: defaultLastName };
+        defineAge() {
+          return { schema: z.number(), default: defaultAge };
         }
       }
 
-      const user = AnotherFakeUser.create(fakeUserInput);
+      const user = AnotherFakeUserEntity.create(fakeUserEntityInput);
 
       expect(user).toMatchObject({
-        ...fakeUserInput,
-        password: fakeUserInput.password.toString(),
+        ...fakeUserEntityInput,
+        password: fakeUserEntityInput.password?.toString(),
       });
       expect(user.id).toBeInstanceOf(UniqueEntityId);
-      expect(user.lastName).toEqual(defaultLastName);
+      expect(user.age).toEqual(defaultAge);
     });
   });
 
   describe("update entity", () => {
     it("should be able to update an entity", () => {
-      const user = FakeUser.create(fakeUserInput);
+      const user = sut.create(fakeUserEntityInput);
       const updatedFirstName = faker.person.firstName();
 
       user.update({ firstName: updatedFirstName });
@@ -158,7 +159,7 @@ describe("[Core] Domain Entity", () => {
     });
 
     it("should be able to update an entity applying field transformations", () => {
-      const user = FakeUser.create(fakeUserInput);
+      const user = sut.create(fakeUserEntityInput);
       const updatedPassword = faker.number.int();
 
       user.update({ password: updatedPassword });
@@ -167,7 +168,7 @@ describe("[Core] Domain Entity", () => {
     });
 
     it("should be able to update only fields with values distinct from the originals", () => {
-      const user = FakeUser.create(fakeUserInput);
+      const user = sut.create(fakeUserEntityInput);
       const updatedPassword = faker.number.int();
 
       const updatedFields = user.update({
@@ -178,6 +179,92 @@ describe("[Core] Domain Entity", () => {
       expect(updatedFields).not.toHaveProperty("firstName");
       expect(updatedFields.password).toEqual(updatedPassword.toString());
       expect(user.password).toEqual(updatedPassword.toString());
+    });
+  });
+
+  describe("entity schemas", () => {
+    const getFieldNames = (
+      instance: FakeUser,
+      condition: "all" | "creatable" | "upgradeable" | "default" = "all",
+    ) => {
+      const proto = Object.getOwnPropertyNames(
+        sut.prototype,
+      ) as (keyof EntityDefinition<sut>)[];
+
+      return proto
+        .filter(name => name.startsWith("define"))
+        .map(name => {
+          const definition = (instance as unknown as EntityDefinition<sut>)[
+            name
+          ]();
+          const { readonly, static: _static } = definition;
+          const fieldNamePascalCase = name.replace("define", "");
+          const fieldName =
+            fieldNamePascalCase[0].toLowerCase() + fieldNamePascalCase.slice(1);
+
+          if (condition === "all") return fieldName;
+
+          if (condition === "creatable" && !_static) return fieldName;
+
+          if (condition === "upgradeable" && !readonly) return fieldName;
+
+          if (condition === "default" && "default" in definition)
+            return fieldName;
+        })
+        .filter(Boolean);
+    };
+
+    it("should be able to generate base schema", () => {
+      const user = sut.create(fakeUserEntityInput);
+      const { shape } = sut.baseSchema;
+      const baseSchemaFieldNames = Object.keys(
+        shape,
+      ) as (keyof EntityDataZodShape<sut>)[];
+
+      expect(sut.baseSchema).toBeInstanceOf(z.ZodObject);
+      expect(baseSchemaFieldNames).toEqual(getFieldNames(user));
+
+      for (const fieldName of baseSchemaFieldNames) {
+        expect(shape[fieldName]).toBeInstanceOf(z.ZodType);
+        expect(shape[fieldName]).not.toBeInstanceOf(z.ZodDefault);
+      }
+    });
+
+    it("should be able to generate schema for creation", () => {
+      const user = sut.create(fakeUserEntityInput);
+      const { shape } = sut.createSchema;
+      const createSchemaFieldNames = Object.keys(
+        shape,
+      ) as (keyof EntityDataCreateZodShape<sut>)[];
+
+      expect(sut.createSchema).toBeInstanceOf(z.ZodObject);
+      expect(createSchemaFieldNames).toEqual(getFieldNames(user, "creatable"));
+
+      for (const fieldName of createSchemaFieldNames) {
+        expect(shape[fieldName]).toBeInstanceOf(z.ZodType);
+
+        if (getFieldNames(user, "default").includes(fieldName))
+          expect(shape[fieldName]).toBeInstanceOf(z.ZodDefault);
+      }
+    });
+
+    it("should be able to generate schema for update", () => {
+      const user = sut.create(fakeUserEntityInput);
+      const { shape } = sut.updateSchema;
+      const updateSchemaFieldNames = Object.keys(
+        shape,
+      ) as (keyof EntityDataUpdateZodShape<sut>)[];
+
+      expect(sut.updateSchema).toBeInstanceOf(z.ZodObject);
+      expect(updateSchemaFieldNames).toEqual(
+        getFieldNames(user, "upgradeable"),
+      );
+
+      for (const fieldName of updateSchemaFieldNames) {
+        expect(shape[fieldName]).toBeInstanceOf(z.ZodType);
+        expect(shape[fieldName]).toBeInstanceOf(z.ZodOptional);
+        expect(shape[fieldName]).not.toBeInstanceOf(z.ZodDefault);
+      }
     });
   });
 });

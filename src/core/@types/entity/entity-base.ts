@@ -10,7 +10,7 @@ export type FieldName<PropName> =
 
 export interface FieldDefinition<Input = unknown, Output = Input> {
   schema: z.ZodType<Input>;
-  default?: Output;
+  default?: Input;
   transform?: (value: Input) => Output;
   static?: boolean;
   readonly?: boolean;

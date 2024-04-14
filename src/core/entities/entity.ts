@@ -5,6 +5,7 @@ import {
   EntityDataCreateZodShape,
   EntityDataUpdate,
   EntityDataUpdateZodShape,
+  EntityDataZodShape,
   EntityInstance,
   EntityUnknownDefinition,
 } from "../@types/entity";
@@ -16,6 +17,12 @@ export abstract class Entity {
     const { schemas } = this.mountFields();
 
     return schemas.create;
+  }
+
+  protected get baseSchema() {
+    const { schemas } = this.mountFields();
+
+    return schemas.base;
   }
 
   protected get updateSchema() {
@@ -52,6 +59,7 @@ export abstract class Entity {
       standard: {},
       transformed: {},
     };
+    const baseSchemaShape: Record<string, z.ZodType> = {};
     const createSchemaShape: Record<string, z.ZodType> = {};
     const updateSchemaShape: Record<string, z.ZodType> = {};
 
@@ -64,28 +72,55 @@ export abstract class Entity {
         const pascalCaseFieldName = propName.replace(definitionMethodName, "");
         const fieldName =
           pascalCaseFieldName[0].toLowerCase() + pascalCaseFieldName.slice(1);
-        const fieldSchema = entity[propName]();
+        const fieldDefinition = entity[propName]();
 
-        if (fieldSchema.transform && fieldName in input) {
-          mountedFields.transformed[fieldName] = fieldSchema.transform(
-            input[fieldName as keyof typeof input],
-          );
+        baseSchemaShape[fieldName] = fieldDefinition.schema;
+
+        if ("default" in fieldDefinition)
+          mountedFields.standard[fieldName] = fieldDefinition.default;
+
+        if ("transform" in fieldDefinition) {
+          const transformWithDefaultValue = () => {
+            mountedFields.transformed[fieldName] = fieldDefinition.transform!(
+              fieldDefinition.default,
+            );
+          };
+
+          if (fieldName in input) {
+            const value = input[fieldName as keyof typeof input];
+            const parsedValue = fieldDefinition.schema.safeParse(value);
+            const isUndefinedValueAndSchemaInvalid = !parsedValue.success;
+
+            if (isUndefinedValueAndSchemaInvalid) {
+              transformWithDefaultValue();
+            } else {
+              mountedFields.transformed[fieldName] =
+                fieldDefinition.transform!(value);
+            }
+          } else if ("default" in fieldDefinition) {
+            transformWithDefaultValue();
+          }
         }
 
-        if ("default" in fieldSchema)
-          mountedFields.standard[fieldName] = fieldSchema.default;
+        if (!fieldDefinition.static) {
+          createSchemaShape[fieldName] = fieldDefinition.schema;
 
-        if (!fieldSchema.static)
-          createSchemaShape[fieldName] = fieldSchema.schema;
+          if ("default" in fieldDefinition) {
+            createSchemaShape[fieldName] = fieldDefinition.schema.default(
+              fieldDefinition.default,
+            );
+          }
+        }
 
-        if (!fieldSchema.readonly)
-          updateSchemaShape[fieldName] = fieldSchema.schema;
+        if (!fieldDefinition.readonly)
+          updateSchemaShape[fieldName] = fieldDefinition.schema.optional();
       }
     }
 
     return {
       mountedFields,
       schemas: {
+        base: z.object(baseSchemaShape as EntityDataZodShape<this>),
         create: z.object(createSchemaShape as EntityDataCreateZodShape<this>),
         update: z.object(updateSchemaShape as EntityDataUpdateZodShape<this>),
       },
@@ -125,12 +160,9 @@ export abstract class Entity {
 
           return fields;
         },
-        {} as Required<{
-          [K in keyof (
-            | Required<Input>
-            | EntityData<this>
-          )]: EntityData<this>[K];
-        }>,
+        {} as {
+          [K in keyof (Input | EntityData<this>)]: EntityData<this>[K];
+        },
       );
 
     Object.assign(this, distinctFieldsFromOriginals);
