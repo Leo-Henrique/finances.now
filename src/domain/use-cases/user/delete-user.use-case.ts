@@ -7,7 +7,7 @@ import { z } from "zod";
 
 const deleteUserUseCaseSchema = z.object({
   userId: z.string().uuid(),
-  currentPassword: UserEntity.createSchema.shape.password,
+  currentPassword: UserEntity.baseSchema.shape.password,
 });
 
 type DeleteUserUseCaseInput = z.infer<typeof deleteUserUseCaseSchema>;

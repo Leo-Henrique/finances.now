@@ -1,9 +1,12 @@
-import { User, UserDataUpdated } from "../entities/user.entity";
+import { BaseRepository } from "@/core/repositories/base-repository";
+import { User, UserDataUpdated, UserEntity } from "../entities/user.entity";
 
-export interface UserRepository {
-  create(user: User): Promise<void>;
-  update(user: User, data: UserDataUpdated): Promise<void>;
-  delete(user: User): Promise<void>;
-  findUniqueById(id: User["id"]["value"]): Promise<User | null>;
+type CoreOperationsUserRepository = BaseRepository<
+  UserEntity,
+  User,
+  UserDataUpdated
+>;
+
+export interface UserRepository extends CoreOperationsUserRepository {
   findUniqueByEmail(email: User["email"]): Promise<User | null>;
 }

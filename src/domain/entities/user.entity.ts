@@ -50,6 +50,10 @@ export class UserEntity
     return new this().createEntity(input);
   }
 
+  public static get baseSchema() {
+    return new this().baseSchema;
+  }
+
   public static get createSchema() {
     return new this().createSchema;
   }

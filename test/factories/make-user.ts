@@ -1,7 +1,9 @@
 import { UserDataCreate, UserEntity } from "@/domain/entities/user.entity";
 import { faker } from "@faker-js/faker";
 
-export function makeUser(override: Partial<UserDataCreate> = {}) {
+type MakeUserInput = Partial<UserDataCreate>;
+
+export function makeUser(override: MakeUserInput = {}) {
   const input: UserDataCreate = {
     name: faker.person.fullName(),
     email: faker.internet.email(),

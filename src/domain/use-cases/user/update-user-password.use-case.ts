@@ -11,8 +11,8 @@ import { z } from "zod";
 
 const updateUserPasswordUseCaseSchema = z.object({
   userId: z.string().uuid(),
-  currentPassword: UserEntity.createSchema.shape.password,
-  newPassword: UserEntity.createSchema.shape.password,
+  currentPassword: UserEntity.baseSchema.shape.password,
+  newPassword: UserEntity.baseSchema.shape.password,
 });
 
 type UpdateUserPasswordUseCaseInput = z.infer<

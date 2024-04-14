@@ -7,7 +7,7 @@ import { z } from "zod";
 
 const updateUserUseCaseSchema = z.object({
   userId: z.string().uuid(),
-  data: UserEntity.updateSchema.pick({ name: true }),
+  data: UserEntity.updateSchema.pick({ name: true }).required(),
 });
 
 type UpdateUserUseCaseInput = z.infer<typeof updateUserUseCaseSchema>;
