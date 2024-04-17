@@ -7,7 +7,6 @@ import { z } from "zod";
 
 const getUserProfileUseCaseSchema = z.object({
   userId: z.string().uuid(),
-  targetUserId: z.string().uuid(),
 });
 
 type GetUserProfileUseCaseInput = z.infer<typeof getUserProfileUseCaseSchema>;
@@ -34,13 +33,10 @@ export class GetUserProfileUseCase extends UseCase<
 
   protected async handle({
     userId,
-    targetUserId,
   }: GetUserProfileUseCaseInput): Promise<GetUserProfileUseCaseOutput> {
-    const user = await this.deps.userRepository.findUniqueById(targetUserId);
+    const user = await this.deps.userRepository.findUniqueById(userId);
 
     if (!user) return left(new ResourceNotFoundError("usuário"));
-
-    if (userId !== user.id.value) return left(new UnauthorizedError());
 
     return right({ user: user.serialized });
   }
