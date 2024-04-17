@@ -17,7 +17,7 @@ type UseCaseDependencies = object;
 
 export abstract class UseCase<
   Input,
-  Output extends Either<DomainError, object>,
+  Output extends Either<DomainError | null, object>,
   Dependencies extends UseCaseDependencies | undefined = undefined,
 > {
   private inputSchema: UseCaseInputSchema<Input> | undefined = undefined;

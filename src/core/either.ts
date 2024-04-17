@@ -43,7 +43,7 @@ export class Right<Result> {
   }
 }
 
-export const left = <Reason extends DomainError>(
+export const left = <Reason extends DomainError | null>(
   reason: Reason,
 ): Left<Reason> => {
   return new Left<Reason>(reason);

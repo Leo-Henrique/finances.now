@@ -1,12 +1,14 @@
 import { DomainError } from "@/core/errors/domain-error";
 import { toPascalCase } from "@/utils/toPascalCase";
 
+type Resources = "usuário" | "conta bancária";
+
 export class ResourceAlreadyExistsError extends DomainError {
   public error = "ResourceAlreadyExistsError";
   public HTTPStatusCode = 409;
   public debug = null;
 
-  constructor(resource: string = "recurso") {
+  constructor(resource: Resources) {
     super(`${toPascalCase(resource)} já existente.`);
   }
 }
@@ -16,7 +18,7 @@ export class ResourceNotFoundError extends DomainError {
   public HTTPStatusCode = 400;
   public debug = null;
 
-  constructor(resource: string = "recurso") {
+  constructor(resource: Resources) {
     super(`${toPascalCase(resource)} inexistente.`);
   }
 }
