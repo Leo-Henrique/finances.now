@@ -1,4 +1,5 @@
 import { Either, left, right } from "@/core/either";
+import { ValidationError } from "@/core/errors/errors";
 import { UseCase } from "@/core/use-case";
 import { User, UserEntity } from "@/domain/entities/user.entity";
 import { ResourceNotFoundError } from "@/domain/errors";
@@ -7,13 +8,13 @@ import { z } from "zod";
 
 const updateUserUseCaseSchema = z.object({
   userId: z.string().uuid(),
-  data: UserEntity.updateSchema.pick({ name: true }).required(),
+  data: UserEntity.updateSchema.pick({ name: true }),
 });
 
 type UpdateUserUseCaseInput = z.infer<typeof updateUserUseCaseSchema>;
 
 type UpdateUserUseCaseOutput = Either<
-  ResourceNotFoundError,
+  ValidationError | ResourceNotFoundError,
   {
     user: User["serialized"];
   }
@@ -36,6 +37,8 @@ export class UpdateUserUseCase extends UseCase<
     userId,
     data,
   }: UpdateUserUseCaseInput): Promise<UpdateUserUseCaseOutput> {
+    if (!Object.keys(data).length) return left(new ValidationError());
+
     const user = await this.deps.userRepository.findUniqueById(userId);
 
     if (!user) return left(new ResourceNotFoundError("usuário"));

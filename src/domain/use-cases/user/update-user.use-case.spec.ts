@@ -47,8 +47,31 @@ describe("[Use Case] Update user", () => {
       const { isLeft, reason } = await sut.execute<"error">({
         // @ts-expect-error: field is required
         userId: undefined,
-        // @ts-expect-error: fields is required
         data: {},
+      });
+
+      expect(isLeft()).toBeTruthy();
+      expect(reason).toBeInstanceOf(ValidationError);
+    });
+
+    it("should not be able to update an user without any fields", async () => {
+      const { isLeft, reason } = await sut.execute<"error">({
+        userId: user.entity.id.value,
+        data: {},
+      });
+
+      expect(isLeft()).toBeTruthy();
+      expect(reason).toBeInstanceOf(ValidationError);
+    });
+
+    it("should not be able to update an user with not allowed fields", async () => {
+      const { isLeft, reason } = await sut.execute<"error">({
+        userId: user.entity.id.value,
+        data: {
+          // @ts-expect-error: fields is not allowed
+          email: faker.internet.email(),
+          password: faker.string.alphanumeric({ length: { min: 15, max: 20 } }),
+        },
       });
 
       expect(isLeft()).toBeTruthy();
