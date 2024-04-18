@@ -1,4 +1,5 @@
 import { Either, right } from "@/core/either";
+import { UniqueEntityId } from "@/core/entities/unique-entity-id";
 import { paginationParamsSchema } from "@/core/schemas/pagination-params";
 import { UseCase } from "@/core/use-case";
 import { BankAccount } from "@/domain/entities/bank-account.entity";
@@ -7,7 +8,7 @@ import { z } from "zod";
 
 const listBankAccountsUseCaseSchema = z
   .object({
-    userId: z.string().uuid(),
+    userId: UniqueEntityId.schema,
   })
   .merge(paginationParamsSchema);
 

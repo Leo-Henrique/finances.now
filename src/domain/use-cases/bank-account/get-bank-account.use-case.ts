@@ -1,4 +1,5 @@
 import { Either, left, right } from "@/core/either";
+import { UniqueEntityId } from "@/core/entities/unique-entity-id";
 import { UseCase } from "@/core/use-case";
 import { BankAccount } from "@/domain/entities/bank-account.entity";
 import { ResourceNotFoundError, UnauthorizedError } from "@/domain/errors";
@@ -6,8 +7,8 @@ import { BankAccountRepository } from "@/domain/repositories/bank-account.reposi
 import { z } from "zod";
 
 const getBankAccountUseCaseSchema = z.object({
-  bankAccountId: z.string().uuid(),
-  userId: z.string().uuid(),
+  bankAccountId: UniqueEntityId.schema,
+  userId: UniqueEntityId.schema,
 });
 
 export type GetBankAccountUseCaseInput = z.infer<

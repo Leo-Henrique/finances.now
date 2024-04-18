@@ -1,4 +1,5 @@
 import { Either, left, right } from "@/core/either";
+import { UniqueEntityId } from "@/core/entities/unique-entity-id";
 import { UseCase } from "@/core/use-case";
 import { User, UserEntity } from "@/domain/entities/user.entity";
 import {
@@ -10,7 +11,7 @@ import { UserRepository } from "@/domain/repositories/user.repository";
 import { z } from "zod";
 
 const updateUserPasswordUseCaseSchema = z.object({
-  userId: z.string().uuid(),
+  userId: UniqueEntityId.schema,
   currentPassword: UserEntity.baseSchema.shape.password,
   newPassword: UserEntity.baseSchema.shape.password,
 });

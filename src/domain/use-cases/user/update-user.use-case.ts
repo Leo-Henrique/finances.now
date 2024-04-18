@@ -1,4 +1,5 @@
 import { Either, left, right } from "@/core/either";
+import { UniqueEntityId } from "@/core/entities/unique-entity-id";
 import { ValidationError } from "@/core/errors/errors";
 import { UseCase } from "@/core/use-case";
 import { User, UserEntity } from "@/domain/entities/user.entity";
@@ -7,7 +8,7 @@ import { UserRepository } from "@/domain/repositories/user.repository";
 import { z } from "zod";
 
 const updateUserUseCaseSchema = z.object({
-  userId: z.string().uuid(),
+  userId: UniqueEntityId.schema,
   data: UserEntity.updateSchema.pick({ name: true }),
 });
 

@@ -1,4 +1,5 @@
 import { Either, left, right } from "@/core/either";
+import { UniqueEntityId } from "@/core/entities/unique-entity-id";
 import { UseCase } from "@/core/use-case";
 import { UserEntity } from "@/domain/entities/user.entity";
 import { ResourceNotFoundError, UnauthorizedError } from "@/domain/errors";
@@ -6,7 +7,7 @@ import { UserRepository } from "@/domain/repositories/user.repository";
 import { z } from "zod";
 
 const deleteUserUseCaseSchema = z.object({
-  userId: z.string().uuid(),
+  userId: UniqueEntityId.schema,
   currentPassword: UserEntity.baseSchema.shape.password,
 });
 

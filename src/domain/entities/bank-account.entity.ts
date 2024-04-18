@@ -27,7 +27,7 @@ export class BankAccountEntity
 {
   defineUserId() {
     return {
-      schema: z.string().uuid(),
+      schema: UniqueEntityId.schema,
       transform: (val: string) => new UniqueEntityId(val),
       readonly: true,
     };

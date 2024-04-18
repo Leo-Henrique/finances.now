@@ -1,4 +1,5 @@
 import { Either, left, right } from "@/core/either";
+import { UniqueEntityId } from "@/core/entities/unique-entity-id";
 import { ValidationError } from "@/core/errors/errors";
 import { UseCase } from "@/core/use-case";
 import {
@@ -10,8 +11,8 @@ import { BankAccountRepository } from "@/domain/repositories/bank-account.reposi
 import { z } from "zod";
 
 const updateBankAccountUseCaseSchema = z.object({
-  bankAccountId: z.string().uuid(),
-  userId: z.string().uuid(),
+  bankAccountId: UniqueEntityId.schema,
+  userId: UniqueEntityId.schema,
   data: BankAccountEntity.updateSchema.pick({
     institution: true,
     description: true,
