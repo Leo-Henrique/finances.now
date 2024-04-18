@@ -8,6 +8,7 @@ import {
 } from "@/core/@types/entity";
 import { BaseEntity } from "@/core/entities/base-entity";
 import { z } from "zod";
+import { Name } from "./value-objects/name";
 import { PasswordHash } from "./value-objects/password-hash";
 
 export type User = EntityInstance<UserEntity>;
@@ -25,7 +26,7 @@ export class UserEntity
   implements EntityDefinition<UserEntity>
 {
   defineName() {
-    return { schema: z.string().max(255).trim() };
+    return { schema: Name.schema, transform: (val: string) => new Name(val) };
   }
 
   defineEmail() {

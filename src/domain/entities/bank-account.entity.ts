@@ -9,6 +9,7 @@ import {
 import { BaseEntity } from "@/core/entities/base-entity";
 import { UniqueEntityId } from "@/core/entities/unique-entity-id";
 import { z } from "zod";
+import { Name } from "./value-objects/name";
 
 export type BankAccount = EntityInstance<BankAccountEntity>;
 
@@ -33,7 +34,7 @@ export class BankAccountEntity
   }
 
   defineInstitution() {
-    return { schema: z.string().max(255).trim() };
+    return { schema: Name.schema, transform: (val: string) => new Name(val) };
   }
 
   defineDescription() {

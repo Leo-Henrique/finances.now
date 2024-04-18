@@ -28,8 +28,8 @@ describe("[Use Case] Update user", () => {
 
     expect(isRight()).toBeTruthy();
     expect(result.user.id.value).toEqual(user.entity.id.value);
-    expect(result.user.name).toEqual(updatedName);
-    expect(userRepository.items[0].name).toEqual(updatedName);
+    expect(result.user.name.value).toEqual(updatedName);
+    expect(userRepository.items[0].name.value).toEqual(updatedName);
   });
 
   it("should not be able to update an non-existent user", async () => {
@@ -82,7 +82,7 @@ describe("[Use Case] Update user", () => {
       const { isLeft, reason } = await sut.execute<"error">({
         userId: user.entity.id.value,
         data: {
-          name: faker.string.alphanumeric({ length: { min: 255, max: 300 } }),
+          name: faker.string.alphanumeric({ length: { min: 256, max: 300 } }),
         },
       });
 

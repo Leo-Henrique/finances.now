@@ -33,8 +33,8 @@ describe("[Use Case] Update bank account", () => {
 
     expect(isRight()).toBeTruthy();
     expect(result.bankAccount.id.value).toEqual(bankAccount.entity.id.value);
-    expect(result.bankAccount.institution).toEqual(updatedInstitution);
-    expect(bankAccountRepository.items[0].institution).toEqual(
+    expect(result.bankAccount.institution.value).toEqual(updatedInstitution);
+    expect(bankAccountRepository.items[0].institution.value).toEqual(
       updatedInstitution,
     );
   });
