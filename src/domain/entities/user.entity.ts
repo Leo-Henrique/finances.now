@@ -34,7 +34,7 @@ export class UserEntity
 
   definePassword() {
     return {
-      schema: z.string().min(6).max(60),
+      schema: PasswordHash.schema,
       transform: (val: string) => new PasswordHash(val),
     };
   }
