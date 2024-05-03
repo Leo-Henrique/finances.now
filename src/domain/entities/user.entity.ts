@@ -26,7 +26,10 @@ export class UserEntity
   implements EntityDefinition<UserEntity>
 {
   defineName() {
-    return { schema: Name.schema, transform: (val: string) => new Name(val) };
+    return {
+      schema: Name.schema,
+      transform: (val: string) => new Name(val),
+    };
   }
 
   defineEmail() {
@@ -42,7 +45,7 @@ export class UserEntity
 
   get serialized() {
     // eslint-disable-next-line
-    const { password, ...rest } = this.entity;
+    const { password, ...rest } = this.getData<UserEntity>();
 
     return rest;
   }
