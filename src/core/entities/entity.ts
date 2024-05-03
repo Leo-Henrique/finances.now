@@ -13,16 +13,16 @@ import {
 export const definitionMethodName = "define" as const;
 
 export abstract class Entity {
-  protected get createSchema() {
-    const { schemas } = this.mountFields();
-
-    return schemas.create;
-  }
-
   protected get baseSchema() {
     const { schemas } = this.mountFields();
 
     return schemas.base;
+  }
+
+  public get createSchema() {
+    const { schemas } = this.mountFields();
+
+    return schemas.create;
   }
 
   protected get updateSchema() {
@@ -31,11 +31,14 @@ export abstract class Entity {
     return schemas.update;
   }
 
-  protected get entity() {
-    return this as unknown as EntityInstance<this>;
+  protected getData<Class extends Entity>() {
+    return this as unknown as EntityData<Class>;
   }
 
-  private mountFields(input: object = {}) {
+  private mountFields(
+    input: object = {},
+    options: { isCreation?: boolean } = {},
+  ) {
     const baseEntityProto = this.constructor.prototype;
     const classes: EntityUnknownDefinition[] = [baseEntityProto];
     const getExtendedClasses = (baseClass = baseEntityProto) => {
@@ -59,9 +62,18 @@ export abstract class Entity {
       standard: {},
       transformed: {},
     };
-    const baseSchemaShape: Record<string, z.ZodType> = {};
-    const createSchemaShape: Record<string, z.ZodType> = {};
-    const updateSchemaShape: Record<string, z.ZodType> = {};
+    const schemas: {
+      baseShape: Record<string, z.ZodType>;
+      createShape: Record<string, z.ZodType>;
+      updateShape: Record<string, z.ZodType>;
+    } = {
+      baseShape: {},
+      createShape: {},
+      updateShape: {},
+    };
+    const events = {
+      definition: [() => {}],
+    };
 
     for (const entity of classes) {
       const definitionPropertyNames = Object.getOwnPropertyNames(entity).filter(
@@ -72,63 +84,94 @@ export abstract class Entity {
         const pascalCaseFieldName = propName.replace(definitionMethodName, "");
         const fieldName =
           pascalCaseFieldName[0].toLowerCase() + pascalCaseFieldName.slice(1);
-        const fieldDefinition = entity[propName]();
+        const currentFieldValue = this[fieldName as keyof EntityData<this>];
+        const fieldDefinition = entity[propName].bind(this)();
+        const inputValue = input[fieldName as keyof typeof input];
+        const isUndefinedInputAndSchemaInvalid = () => {
+          const parsedValue = fieldDefinition.schema.safeParse(inputValue);
 
-        baseSchemaShape[fieldName] = fieldDefinition.schema;
+          return fieldName in input && !parsedValue.success;
+        };
 
-        if ("default" in fieldDefinition)
-          mountedFields.standard[fieldName] = fieldDefinition.default;
+        if (options.isCreation) {
+          if ("default" in fieldDefinition) {
+            mountedFields.standard[fieldName] = fieldDefinition.default;
+          }
 
-        if ("transform" in fieldDefinition) {
-          const transformWithDefaultValue = () => {
-            mountedFields.transformed[fieldName] = fieldDefinition.transform!(
-              fieldDefinition.default,
-            );
-          };
-
-          if (fieldName in input) {
-            const value = input[fieldName as keyof typeof input];
-            const parsedValue = fieldDefinition.schema.safeParse(value);
-            const isUndefinedValueAndSchemaInvalid = !parsedValue.success;
-
-            if (isUndefinedValueAndSchemaInvalid) {
-              transformWithDefaultValue();
-            } else {
+          if (fieldDefinition.transform) {
+            if (isUndefinedInputAndSchemaInvalid()) {
+              mountedFields.transformed[fieldName] = fieldDefinition.transform!(
+                fieldDefinition.default,
+              );
+            } else if (fieldName in input) {
               mountedFields.transformed[fieldName] =
-                fieldDefinition.transform!(value);
+                fieldDefinition.transform(inputValue);
+            } else if ("default" in fieldDefinition) {
+              mountedFields.transformed[fieldName] = fieldDefinition.transform!(
+                fieldDefinition.default,
+              );
             }
-          } else if ("default" in fieldDefinition) {
-            transformWithDefaultValue();
+          }
+        } else {
+          if (fieldDefinition.transform) {
+            if (isUndefinedInputAndSchemaInvalid()) {
+              mountedFields.transformed[fieldName] = currentFieldValue;
+            } else if (fieldName in input) {
+              mountedFields.transformed[fieldName] =
+                fieldDefinition.transform(inputValue);
+            }
           }
         }
 
+        const fieldHasBeenDefined = () => {
+          const fieldCreatedWithDefaultValue =
+            options.isCreation && "default" in fieldDefinition;
+
+          if (isUndefinedInputAndSchemaInvalid())
+            return fieldCreatedWithDefaultValue;
+
+          if (fieldName in input) return true;
+
+          if (fieldCreatedWithDefaultValue) return true;
+
+          return false;
+        };
+
+        if (fieldDefinition.onDefinition && fieldHasBeenDefined())
+          events.definition.push(() => fieldDefinition.onDefinition!());
+
+        schemas.baseShape[fieldName] = fieldDefinition.schema;
+
         if (!fieldDefinition.static) {
-          createSchemaShape[fieldName] = fieldDefinition.schema;
+          schemas.createShape[fieldName] = fieldDefinition.schema;
 
           if ("default" in fieldDefinition) {
-            createSchemaShape[fieldName] = fieldDefinition.schema.default(
+            schemas.createShape[fieldName] = fieldDefinition.schema.default(
               fieldDefinition.default,
             );
           }
         }
 
         if (!fieldDefinition.readonly)
-          updateSchemaShape[fieldName] = fieldDefinition.schema.optional();
+          schemas.updateShape[fieldName] = fieldDefinition.schema.optional();
       }
     }
 
     return {
       mountedFields,
       schemas: {
-        base: z.object(baseSchemaShape as EntityDataZodShape<this>),
-        create: z.object(createSchemaShape as EntityDataCreateZodShape<this>),
-        update: z.object(updateSchemaShape as EntityDataUpdateZodShape<this>),
+        base: z.object(schemas.baseShape as EntityDataZodShape<this>),
+        create: z.object(schemas.createShape as EntityDataCreateZodShape<this>),
+        update: z.object(schemas.updateShape as EntityDataUpdateZodShape<this>),
       },
+      events,
     };
   }
 
   protected createEntity(input: EntityDataCreate<this>) {
-    const { mountedFields } = this.mountFields(input);
+    const { mountedFields, events } = this.mountFields(input, {
+      isCreation: true,
+    });
     const fields = {
       ...mountedFields.standard,
       ...input,
@@ -137,16 +180,27 @@ export abstract class Entity {
 
     Object.assign(this, fields);
 
-    return this.entity;
+    for (const definitionEvent of events.definition) definitionEvent();
+
+    return this as unknown as EntityInstance<this>;
   }
 
-  public update<Input extends EntityDataUpdate<this>>(input: Input) {
-    const { mountedFields } = this.mountFields(input);
-    const inputFields = { ...input, ...mountedFields.transformed };
-    const distinctFieldsFromOriginals = Object.keys(inputFields)
+  public update<Input extends EntityDataUpdate<this>>(
+    input: Input,
+    options: { unsafe?: boolean; isEarly?: boolean } = {},
+  ) {
+    const { mountedFields, events } = this.mountFields(input, {
+      isCreation: false,
+    });
+    let inputFields = input;
+
+    if (!options.unsafe)
+      inputFields = { ...input, ...mountedFields.transformed };
+
+    const inputFieldNames = Object.keys(inputFields) as (keyof Input)[];
+    const distinctFieldsFromOriginals = inputFieldNames
       .filter(fieldName => {
-        const originalField =
-          this.entity[fieldName as keyof typeof this.entity];
+        const originalField = this[fieldName as keyof EntityData<this>];
 
         return inputFields[fieldName] !== originalField;
       })
@@ -169,6 +223,13 @@ export abstract class Entity {
 
     if ("updatedAt" in this) this.updatedAt = new Date();
 
+    if (!options.isEarly)
+      for (const definitionEvent of events.definition) definitionEvent();
+
     return distinctFieldsFromOriginals;
+  }
+
+  protected earlyUpdate<Class extends Entity>(input: EntityDataUpdate<Class>) {
+    this.update(input as unknown as EntityDataUpdate<this>, { isEarly: true });
   }
 }

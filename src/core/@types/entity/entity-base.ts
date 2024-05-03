@@ -14,6 +14,7 @@ export interface FieldDefinition<Input = unknown, Output = Input> {
   transform?: (value: Input) => Output;
   static?: boolean;
   readonly?: boolean;
+  onDefinition?: () => void;
 }
 
 export type GetFieldDefinition<
