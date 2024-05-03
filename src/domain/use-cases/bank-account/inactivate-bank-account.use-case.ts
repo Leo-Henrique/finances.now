@@ -8,8 +8,8 @@ import { BankAccountRepository } from "@/domain/repositories/bank-account.reposi
 import { z } from "zod";
 
 const inactivateBankAccountUseCaseSchema = z.object({
-  bankAccountId: UniqueEntityId.schema,
   userId: UniqueEntityId.schema,
+  bankAccountId: UniqueEntityId.schema,
 });
 
 type InactivateBankAccountUseCaseInput = z.infer<
@@ -39,12 +39,12 @@ export class InactivateBankAccountUseCase extends UseCase<
     userId,
   }: InactivateBankAccountUseCaseInput) {
     const bankAccount =
-      await this.deps.bankAccountRepository.findUniqueById(bankAccountId);
+      await this.deps.bankAccountRepository.findUniqueFromUserById(
+        userId,
+        bankAccountId,
+      );
 
     if (!bankAccount) return left(new ResourceNotFoundError("conta bancária"));
-
-    if (bankAccount.userId.value !== userId)
-      return left(new UnauthorizedError());
 
     const updatedFields = bankAccount.update({
       inactivatedAt: bankAccount.inactivatedAt ? null : new Date(),

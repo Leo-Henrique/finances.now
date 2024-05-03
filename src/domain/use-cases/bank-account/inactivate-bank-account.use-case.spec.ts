@@ -1,5 +1,5 @@
 import { ValidationError } from "@/core/errors/errors";
-import { ResourceNotFoundError, UnauthorizedError } from "@/domain/errors";
+import { ResourceNotFoundError } from "@/domain/errors";
 import { faker } from "@faker-js/faker";
 import { makeBankAccount } from "test/factories/make-bank-account";
 import { InMemoryBankAccountRepository } from "test/repositories/in-memory-bank-account.repository";
@@ -69,7 +69,7 @@ describe("[Use Case] Inactivate bank account", () => {
     });
 
     expect(isLeft()).toBeTruthy();
-    expect(reason).toBeInstanceOf(UnauthorizedError);
+    expect(reason).toBeInstanceOf(ResourceNotFoundError);
   });
 
   describe("[Business Roles] given invalid input", () => {
