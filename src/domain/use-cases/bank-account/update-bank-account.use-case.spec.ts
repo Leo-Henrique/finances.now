@@ -1,5 +1,8 @@
 import { ValidationError } from "@/core/errors/errors";
-import { ResourceNotFoundError, UnauthorizedError } from "@/domain/errors";
+import {
+  ResourceAlreadyExistsError,
+  ResourceNotFoundError,
+} from "@/domain/errors";
 import { faker } from "@faker-js/faker";
 import { makeBankAccount } from "test/factories/make-bank-account";
 import { InMemoryBankAccountRepository } from "test/repositories/in-memory-bank-account.repository";
@@ -58,7 +61,20 @@ describe("[Use Case] Update bank account", () => {
     });
 
     expect(isLeft()).toBeTruthy();
-    expect(reason).toBeInstanceOf(UnauthorizedError);
+    expect(reason).toBeInstanceOf(ResourceNotFoundError);
+  });
+
+  it("should not be able to update a bank account with one institution name already exists for that same user", async () => {
+    await bankAccountRepository.create(bankAccount.entity);
+
+    const { isLeft, reason } = await sut.execute<"error">({
+      userId,
+      bankAccountId: bankAccount.entity.id.value,
+      data: { institution: bankAccount.entity.institution.value },
+    });
+
+    expect(isLeft()).toBeTruthy();
+    expect(reason).toBeInstanceOf(ResourceAlreadyExistsError);
   });
 
   describe("[Business Roles] given invalid input", () => {

@@ -2,13 +2,14 @@ import { Either, left, right } from "@/core/either";
 import { UniqueEntityId } from "@/core/entities/unique-entity-id";
 import { UseCase } from "@/core/use-case";
 import { BankAccount } from "@/domain/entities/bank-account.entity";
-import { ResourceNotFoundError, UnauthorizedError } from "@/domain/errors";
+import { Slug } from "@/domain/entities/value-objects/slug";
+import { ResourceNotFoundError } from "@/domain/errors";
 import { BankAccountRepository } from "@/domain/repositories/bank-account.repository";
 import { z } from "zod";
 
 const getBankAccountUseCaseSchema = z.object({
-  bankAccountId: UniqueEntityId.schema,
   userId: UniqueEntityId.schema,
+  bankAccountSlug: Slug.schema,
 });
 
 export type GetBankAccountUseCaseInput = z.infer<
@@ -34,16 +35,16 @@ export class GetBankAccountUseCase extends UseCase<
   }
 
   protected async handle({
-    bankAccountId,
     userId,
+    bankAccountSlug,
   }: GetBankAccountUseCaseInput) {
     const bankAccount =
-      await this.deps.bankAccountRepository.findUniqueById(bankAccountId);
+      await this.deps.bankAccountRepository.findUniqueFromUserBySlug(
+        userId,
+        bankAccountSlug,
+      );
 
     if (!bankAccount) return left(new ResourceNotFoundError("conta bancária"));
-
-    if (bankAccount.userId.value !== userId)
-      return left(new UnauthorizedError());
 
     return right({ bankAccount });
   }

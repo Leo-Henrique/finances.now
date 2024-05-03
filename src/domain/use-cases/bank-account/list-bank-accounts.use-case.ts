@@ -39,13 +39,13 @@ export class ListBankAccountsUseCase extends UseCase<
     items,
     page,
   }: ListBankAccountsUseCaseInput) {
-    const bankAccounts = await this.deps.bankAccountRepository.findManyByUserId(
+    const bankAccounts = await this.deps.bankAccountRepository.findManyFromUser(
       userId,
       { items, page },
     );
 
     const total =
-      await this.deps.bankAccountRepository.countManyByUserId(userId);
+      await this.deps.bankAccountRepository.countManyFromUser(userId);
 
     return right({ bankAccounts, total });
   }

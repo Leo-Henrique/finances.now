@@ -10,6 +10,7 @@ import { BaseEntity } from "@/core/entities/base-entity";
 import { UniqueEntityId } from "@/core/entities/unique-entity-id";
 import { z } from "zod";
 import { Name } from "./value-objects/name";
+import { Slug } from "./value-objects/slug";
 
 export type BankAccount = EntityInstance<BankAccountEntity>;
 
@@ -33,12 +34,31 @@ export class BankAccountEntity
     };
   }
 
+  defineSlug() {
+    return {
+      schema: Slug.schema,
+      transform: (val: string) => new Slug(val),
+      static: true,
+    };
+  }
+
   defineInstitution() {
-    return { schema: Name.schema, transform: (val: string) => new Name(val) };
+    return {
+      schema: Name.schema,
+      transform: (val: string) => new Name(val),
+      onDefinition: () => {
+        const { institution } = this.getData<BankAccountEntity>();
+
+        this.earlyUpdate<BankAccountEntity>({ slug: institution.value });
+      },
+    };
   }
 
   defineDescription() {
-    return { schema: z.string().max(255).trim().nullable(), default: null };
+    return {
+      schema: z.string().max(255).trim().nullable(),
+      default: null,
+    };
   }
 
   defineBalance() {
@@ -49,11 +69,18 @@ export class BankAccountEntity
   }
 
   defineMainAccount() {
-    return { schema: z.boolean(), default: false };
+    return {
+      schema: z.boolean(),
+      default: false,
+    };
   }
 
   defineInactivatedAt() {
-    return { schema: z.date().nullable(), default: null, static: true };
+    return {
+      schema: z.date().nullable(),
+      default: null,
+      static: true,
+    };
   }
 
   public static create(input: BankAccountDataCreate) {

@@ -1,5 +1,9 @@
 import { ValidationError } from "@/core/errors/errors";
-import { ResourceNotFoundError } from "@/domain/errors";
+import { Slug } from "@/domain/entities/value-objects/slug";
+import {
+  ResourceAlreadyExistsError,
+  ResourceNotFoundError,
+} from "@/domain/errors";
 import { faker } from "@faker-js/faker";
 import { makeBankAccount } from "test/factories/make-bank-account";
 import { makeUser } from "test/factories/make-user";
@@ -34,6 +38,7 @@ describe("[Use Case] Create bank account", () => {
     expect(isRight()).toBeTruthy();
     expect(result.bankAccount.userId).toEqual(user.entity.id);
     expect(result.bankAccount.userId).toEqual(bankAccount.entity.userId);
+    expect(result.bankAccount.slug).toBeInstanceOf(Slug);
     expect(bankAccountRepository.items[0]).toEqual(result.bankAccount);
   });
 
@@ -45,6 +50,15 @@ describe("[Use Case] Create bank account", () => {
 
     expect(isLeft()).toBeTruthy();
     expect(reason).toBeInstanceOf(ResourceNotFoundError);
+  });
+
+  it("should not be able to create a bank account with one institution name already exists for that same user", async () => {
+    await bankAccountRepository.create(bankAccount.entity);
+
+    const { isLeft, reason } = await sut.execute<"error">(bankAccount.input);
+
+    expect(isLeft()).toBeTruthy();
+    expect(reason).toBeInstanceOf(ResourceAlreadyExistsError);
   });
 
   describe("[Business Roles] given invalid input", () => {

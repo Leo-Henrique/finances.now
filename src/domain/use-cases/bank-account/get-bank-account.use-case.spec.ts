@@ -1,4 +1,4 @@
-import { ResourceNotFoundError, UnauthorizedError } from "@/domain/errors";
+import { ResourceNotFoundError } from "@/domain/errors";
 import { faker } from "@faker-js/faker";
 import { makeBankAccount } from "test/factories/make-bank-account";
 import { InMemoryBankAccountRepository } from "test/repositories/in-memory-bank-account.repository";
@@ -25,7 +25,7 @@ describe("[Use Case] Get bank account", () => {
 
   it("should be able to get bank account", async () => {
     const { isRight, result } = await sut.execute<"success">({
-      bankAccountId: bankAccount.entity.id.value,
+      bankAccountSlug: bankAccount.entity.slug.value,
       userId,
     });
 
@@ -35,7 +35,7 @@ describe("[Use Case] Get bank account", () => {
 
   it("should not be able to get a non-existent bank account", async () => {
     const { isLeft, reason } = await sut.execute<"error">({
-      bankAccountId: faker.string.uuid(),
+      bankAccountSlug: faker.lorem.words(),
       userId,
     });
 
@@ -45,11 +45,11 @@ describe("[Use Case] Get bank account", () => {
 
   it("should not be able to get an bank account if the user is not the owner", async () => {
     const { isLeft, reason } = await sut.execute<"error">({
-      bankAccountId: bankAccount.entity.id.value,
+      bankAccountSlug: bankAccount.entity.slug.value,
       userId: faker.string.uuid(),
     });
 
     expect(isLeft()).toBeTruthy();
-    expect(reason).toBeInstanceOf(UnauthorizedError);
+    expect(reason).toBeInstanceOf(ResourceNotFoundError);
   });
 });
