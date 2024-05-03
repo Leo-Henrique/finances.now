@@ -50,8 +50,9 @@ describe("[Value Object] Name", () => {
       const result = [];
 
       for (let i = 1; i <= 50; i++) {
-        const a = faker.string.symbol();
-        const validateResult = Name.schema.safeParse(`${name} ${a}`);
+        const validateResult = Name.schema.safeParse(
+          `${name} ${faker.string.symbol()}`,
+        );
 
         if (validateResult.success) {
           const character = validateResult.data.replace(`${name} `, "");
