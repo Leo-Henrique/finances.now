@@ -5,7 +5,6 @@ import {
   BankAccountDataUpdated,
   BankAccountEntity,
 } from "@/domain/entities/bank-account.entity";
-import { User } from "@/domain/entities/user.entity";
 import { BankAccountRepository } from "@/domain/repositories/bank-account.repository";
 
 export class InMemoryBankAccountRepository
@@ -16,8 +15,43 @@ export class InMemoryBankAccountRepository
   >
   implements BankAccountRepository
 {
-  async findManyByUserId(
-    userId: User["id"]["value"],
+  public async findUniqueFromUserById(userId: string, bankAccountId: string) {
+    const bankAccount = this.items.find(item => {
+      return item.userId.value === userId && item.id.value === bankAccountId;
+    });
+
+    if (!bankAccount) return null;
+
+    return bankAccount;
+  }
+
+  public async findUniqueFromUserByInstitution(
+    userId: string,
+    institution: string,
+  ) {
+    const bankAccount = this.items.find(item => {
+      return (
+        item.userId.value === userId && item.institution.value === institution
+      );
+    });
+
+    if (!bankAccount) return null;
+
+    return bankAccount;
+  }
+
+  public async findUniqueFromUserBySlug(userId: string, slug: string) {
+    const bankAccount = this.items.find(item => {
+      return item.userId.value === userId && item.slug.value === slug;
+    });
+
+    if (!bankAccount) return null;
+
+    return bankAccount;
+  }
+
+  public async findManyFromUser(
+    userId: string,
     { items, page }: PaginationParams,
   ) {
     const bankAccounts = this.items
@@ -28,7 +62,7 @@ export class InMemoryBankAccountRepository
     return bankAccounts;
   }
 
-  async countManyByUserId(userId: User["id"]["value"]) {
+  public async countManyFromUser(userId: string) {
     const bankAccounts = this.items.filter(
       item => item.userId.value === userId,
     );

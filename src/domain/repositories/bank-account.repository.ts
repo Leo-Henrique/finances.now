@@ -5,7 +5,6 @@ import {
   BankAccountDataUpdated,
   BankAccountEntity,
 } from "../entities/bank-account.entity";
-import { User } from "../entities/user.entity";
 
 type CoreOperationsBankAccountRepository = BaseRepository<
   BankAccountEntity,
@@ -15,9 +14,21 @@ type CoreOperationsBankAccountRepository = BaseRepository<
 
 export interface BankAccountRepository
   extends CoreOperationsBankAccountRepository {
-  findManyByUserId(
-    userId: User["id"]["value"],
+  findUniqueFromUserById(
+    userId: string,
+    bankAccountId: string,
+  ): Promise<BankAccount | null>;
+  findUniqueFromUserByInstitution(
+    userId: string,
+    institution: string,
+  ): Promise<BankAccount | null>;
+  findUniqueFromUserBySlug(
+    userId: string,
+    slug: string,
+  ): Promise<BankAccount | null>;
+  findManyFromUser(
+    userId: string,
     params: PaginationParams,
   ): Promise<BankAccount[]>;
-  countManyByUserId(userId: User["id"]["value"]): Promise<number>;
+  countManyFromUser(userId: string): Promise<number>;
 }
