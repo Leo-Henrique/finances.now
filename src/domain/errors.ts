@@ -1,7 +1,7 @@
 import { DomainError } from "@/core/errors/domain-error";
 import { toPascalCase } from "@/utils/toPascalCase";
 
-type Resources = "usuário" | "conta bancária";
+type Resources = "usuário" | "conta bancária" | "cartão de crédito";
 
 export class ResourceAlreadyExistsError extends DomainError {
   public error = "ResourceAlreadyExistsError";

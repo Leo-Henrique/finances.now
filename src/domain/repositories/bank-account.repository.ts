@@ -18,6 +18,10 @@ export interface BankAccountRepository
     userId: string,
     bankAccountId: string,
   ): Promise<BankAccount | null>;
+  findUniqueActivatedFromUserById(
+    userId: string,
+    bankAccountId: string,
+  ): Promise<BankAccount | null>;
   findUniqueFromUserByInstitution(
     userId: string,
     institution: string,

@@ -25,6 +25,23 @@ export class InMemoryBankAccountRepository
     return bankAccount;
   }
 
+  public async findUniqueActivatedFromUserById(
+    userId: string,
+    bankAccountId: string,
+  ) {
+    const bankAccount = this.items.find(item => {
+      return (
+        item.userId.value === userId &&
+        item.id.value === bankAccountId &&
+        item.inactivatedAt === null
+      );
+    });
+
+    if (!bankAccount) return null;
+
+    return bankAccount;
+  }
+
   public async findUniqueFromUserByInstitution(
     userId: string,
     institution: string,
