@@ -8,5 +8,6 @@ type CoreOperationsUserRepository = BaseRepository<
 >;
 
 export interface UserRepository extends CoreOperationsUserRepository {
+  findUniqueById(userId: string): Promise<User | null>;
   findUniqueByEmail(email: string): Promise<User | null>;
 }

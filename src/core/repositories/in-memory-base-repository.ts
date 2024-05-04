@@ -11,40 +11,32 @@ export abstract class InMemoryBaseRepository<
 {
   public items: DomainEntity[] = [];
 
-  public async create(user: DomainEntity) {
-    this.items.push(user);
+  public async create(entity: DomainEntity) {
+    this.items.push(entity);
   }
 
-  public async update(user: DomainEntity, data: DataUpdated) {
-    const userIndex = this.items.findIndex(
-      item => item.id.value === user.id.value,
+  public async update(entity: DomainEntity, data: DataUpdated) {
+    const entityIndex = this.items.findIndex(
+      item => item.id.value === entity.id.value,
     );
 
-    if (userIndex < 0) return;
+    if (entityIndex < 0) return;
 
     for (const fieldName in data) {
       // @ts-expect-error: current field inference is unknown
-      this.items[userIndex][fieldName] = data[fieldName];
+      this.items[entityIndex][fieldName] = data[fieldName];
     }
 
-    this.items.push(user);
+    this.items.push(entity);
   }
 
-  public async delete(user: DomainEntity) {
-    const userIndex = this.items.findIndex(
-      item => item.id.value === user.id.value,
+  public async delete(entity: DomainEntity) {
+    const entityIndex = this.items.findIndex(
+      item => item.id.value === entity.id.value,
     );
 
-    if (userIndex < 0) return;
+    if (entityIndex < 0) return;
 
-    this.items.splice(userIndex, 1);
-  }
-
-  public async findUniqueById(userId: string) {
-    const user = this.items.find(item => item.id.value === userId);
-
-    if (!user) return null;
-
-    return user;
+    this.items.splice(entityIndex, 1);
   }
 }

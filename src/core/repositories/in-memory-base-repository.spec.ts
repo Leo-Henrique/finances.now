@@ -77,7 +77,6 @@ describe("[Core] In Memory Base Repository", () => {
       "create",
       "update",
       "delete",
-      "findUniqueById",
     ] as (keyof InMemoryFakeUserRepository)[];
 
     expect(sut.items).toEqual([]);
@@ -116,15 +115,5 @@ describe("[Core] In Memory Base Repository", () => {
     await sut.delete(fakeUser);
 
     expect(sut.items).toEqual([anotherFakeUser]);
-  });
-
-  it("should be able to get an entity saved in memory by id", async () => {
-    await sut.create(fakeUser);
-
-    const fakeUserFound = await sut.findUniqueById(fakeUser.id.value);
-    const fakeUserNotFound = await sut.findUniqueById(anotherFakeUser.id.value);
-
-    expect(fakeUserFound).toEqual(fakeUser);
-    expect(fakeUserNotFound).toBeNull();
   });
 });

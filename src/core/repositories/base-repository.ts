@@ -10,5 +10,4 @@ export interface BaseRepository<
   create(domainEntity: DomainEntity): Promise<void>;
   update(domainEntity: DomainEntity, data: DataUpdated): Promise<void>;
   delete(domainEntity: DomainEntity): Promise<void>;
-  findUniqueById(id: DomainEntity["id"]["value"]): Promise<DomainEntity | null>;
 }

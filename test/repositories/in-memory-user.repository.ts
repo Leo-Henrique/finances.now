@@ -10,6 +10,14 @@ export class InMemoryUserRepository
   extends InMemoryBaseRepository<UserEntity, User, UserDataUpdated>
   implements UserRepository
 {
+  public async findUniqueById(userId: string) {
+    const user = this.items.find(item => item.id.value === userId);
+
+    if (!user) return null;
+
+    return user;
+  }
+
   public async findUniqueByEmail(email: User["email"]) {
     const user = this.items.find(item => item.email === email);
 
