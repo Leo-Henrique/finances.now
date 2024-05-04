@@ -3,7 +3,7 @@ import { UniqueEntityId } from "@/core/entities/unique-entity-id";
 import { ValidationError } from "@/core/errors/errors";
 import { UseCase } from "@/core/use-case";
 import { BankAccount } from "@/domain/entities/bank-account.entity";
-import { ResourceNotFoundError, UnauthorizedError } from "@/domain/errors";
+import { ResourceNotFoundError } from "@/domain/errors";
 import { BankAccountRepository } from "@/domain/repositories/bank-account.repository";
 import { z } from "zod";
 
@@ -17,7 +17,7 @@ type InactivateBankAccountUseCaseInput = z.infer<
 >;
 
 type InactivateBankAccountUseCaseOutput = Either<
-  ValidationError | ResourceNotFoundError | UnauthorizedError,
+  ValidationError | ResourceNotFoundError,
   { bankAccount: BankAccount }
 >;
 

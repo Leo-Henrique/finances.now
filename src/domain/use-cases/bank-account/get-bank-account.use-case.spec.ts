@@ -43,7 +43,7 @@ describe("[Use Case] Get bank account", () => {
     expect(reason).toBeInstanceOf(ResourceNotFoundError);
   });
 
-  it("should not be able to get an bank account if the user is not the owner", async () => {
+  it("should not be able to get a bank account if the user is not the owner", async () => {
     const { isLeft, reason } = await sut.execute<"error">({
       bankAccountSlug: bankAccount.entity.slug.value,
       userId: faker.string.uuid(),

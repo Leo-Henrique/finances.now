@@ -9,7 +9,6 @@ import {
 import {
   ResourceAlreadyExistsError,
   ResourceNotFoundError,
-  UnauthorizedError,
 } from "@/domain/errors";
 import { BankAccountRepository } from "@/domain/repositories/bank-account.repository";
 import { z } from "zod";
@@ -29,7 +28,7 @@ type UpdateBankAccountUseCaseInput = z.infer<
 >;
 
 type UpdateBankAccountUseCaseOutput = Either<
-  ValidationError | ResourceNotFoundError | UnauthorizedError,
+  ValidationError | ResourceNotFoundError | ResourceAlreadyExistsError,
   { bankAccount: BankAccount }
 >;
 
@@ -68,7 +67,10 @@ export class UpdateBankAccountUseCase extends UseCase<
           data.institution,
         );
 
-      if (bankAccountWithSameInstitution)
+      if (
+        bankAccountWithSameInstitution &&
+        bankAccountWithSameInstitution.id.value !== bankAccountId
+      )
         return left(new ResourceAlreadyExistsError("conta bancária"));
     }
 

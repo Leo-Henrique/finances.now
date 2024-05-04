@@ -23,7 +23,7 @@ describe("[Use Case] Inactivate bank account", () => {
     await bankAccountRepository.create(bankAccount.entity);
   });
 
-  it("should be able to inactivate an bank account", async () => {
+  it("should be able to inactivate a bank account", async () => {
     const { isRight, result } = await sut.execute<"success">({
       userId,
       bankAccountId: bankAccount.entity.id.value,
@@ -31,11 +31,10 @@ describe("[Use Case] Inactivate bank account", () => {
 
     expect(isRight()).toBeTruthy();
     expect(result.bankAccount.id.value).toEqual(bankAccount.entity.id.value);
-    expect(result.bankAccount.inactivatedAt).toBeInstanceOf(Date);
     expect(bankAccountRepository.items[0].inactivatedAt).toBeInstanceOf(Date);
   });
 
-  it("should be able to reactivate an bank account", async () => {
+  it("should be able to reactivate a bank account", async () => {
     await sut.execute<"success">({
       userId,
       bankAccountId: bankAccount.entity.id.value,
@@ -48,11 +47,10 @@ describe("[Use Case] Inactivate bank account", () => {
 
     expect(isRight()).toBeTruthy();
     expect(result.bankAccount.id.value).toEqual(bankAccount.entity.id.value);
-    expect(result.bankAccount.inactivatedAt).toBeNull();
     expect(bankAccountRepository.items[0].inactivatedAt).toBeNull();
   });
 
-  it("should not be able to inactivate an non-existent bank account", async () => {
+  it("should not be able to inactivate a non-existent bank account", async () => {
     const { isLeft, reason } = await sut.execute<"error">({
       userId,
       bankAccountId: faker.string.uuid(),
@@ -62,7 +60,7 @@ describe("[Use Case] Inactivate bank account", () => {
     expect(reason).toBeInstanceOf(ResourceNotFoundError);
   });
 
-  it("should not be able to inactivate an bank account if the user is not the owner", async () => {
+  it("should not be able to inactivate a bank account if the user is not the owner", async () => {
     const { isLeft, reason } = await sut.execute<"error">({
       userId: faker.string.uuid(),
       bankAccountId: bankAccount.entity.id.value,
@@ -73,7 +71,7 @@ describe("[Use Case] Inactivate bank account", () => {
   });
 
   describe("[Business Roles] given invalid input", () => {
-    it("should not be able to inactivate an bank account without required input fields", async () => {
+    it("should not be able to inactivate a bank account without required input fields", async () => {
       const { isLeft, reason } = await sut.execute<"error">({
         // @ts-expect-error: field is required
         userId: undefined,

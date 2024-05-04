@@ -1,4 +1,5 @@
 import { ValidationError } from "@/core/errors/errors";
+import { Slug } from "@/domain/entities/value-objects/slug";
 import {
   ResourceAlreadyExistsError,
   ResourceNotFoundError,
@@ -26,7 +27,7 @@ describe("[Use Case] Update bank account", () => {
     await bankAccountRepository.create(bankAccount.entity);
   });
 
-  it("should be able to update an bank account", async () => {
+  it("should be able to update a bank account", async () => {
     const updatedInstitution = faker.company.name();
     const { isRight, result } = await sut.execute<"success">({
       userId,
@@ -36,13 +37,15 @@ describe("[Use Case] Update bank account", () => {
 
     expect(isRight()).toBeTruthy();
     expect(result.bankAccount.id.value).toEqual(bankAccount.entity.id.value);
-    expect(result.bankAccount.institution.value).toEqual(updatedInstitution);
     expect(bankAccountRepository.items[0].institution.value).toEqual(
       updatedInstitution,
     );
+    expect(bankAccountRepository.items[0].slug).toEqual(
+      new Slug(updatedInstitution),
+    );
   });
 
-  it("should not be able to update an non-existent bank account", async () => {
+  it("should not be able to update a non-existent bank account", async () => {
     const { isLeft, reason } = await sut.execute<"error">({
       userId,
       bankAccountId: faker.string.uuid(),
@@ -53,7 +56,7 @@ describe("[Use Case] Update bank account", () => {
     expect(reason).toBeInstanceOf(ResourceNotFoundError);
   });
 
-  it("should not be able to update an bank account if the user is not the owner", async () => {
+  it("should not be able to update a bank account if the user is not the owner", async () => {
     const { isLeft, reason } = await sut.execute<"error">({
       userId: faker.string.uuid(),
       bankAccountId: bankAccount.entity.id.value,
@@ -65,20 +68,31 @@ describe("[Use Case] Update bank account", () => {
   });
 
   it("should not be able to update a bank account with one institution name already exists for that same user", async () => {
-    await bankAccountRepository.create(bankAccount.entity);
+    const anotherBankAccount = makeBankAccount({ userId });
 
-    const { isLeft, reason } = await sut.execute<"error">({
+    await bankAccountRepository.create(anotherBankAccount.entity);
+
+    const sameInstitutionOfOwnCardResult = await sut.execute<"success">({
       userId,
       bankAccountId: bankAccount.entity.id.value,
       data: { institution: bankAccount.entity.institution.value },
     });
+    const sameInstitutionOfAnotherBankAccountResult =
+      await sut.execute<"error">({
+        userId,
+        bankAccountId: bankAccount.entity.id.value,
+        data: { institution: anotherBankAccount.entity.institution.value },
+      });
 
-    expect(isLeft()).toBeTruthy();
-    expect(reason).toBeInstanceOf(ResourceAlreadyExistsError);
+    expect(sameInstitutionOfOwnCardResult.isRight()).toBeTruthy();
+    expect(sameInstitutionOfAnotherBankAccountResult.isLeft()).toBeTruthy();
+    expect(sameInstitutionOfAnotherBankAccountResult.reason).toBeInstanceOf(
+      ResourceAlreadyExistsError,
+    );
   });
 
   describe("[Business Roles] given invalid input", () => {
-    it("should not be able to update an bank account without required input fields", async () => {
+    it("should not be able to update a bank account without required input fields", async () => {
       const { isLeft, reason } = await sut.execute<"error">({
         // @ts-expect-error: field is required
         userId: undefined,
@@ -91,7 +105,7 @@ describe("[Use Case] Update bank account", () => {
       expect(reason).toBeInstanceOf(ValidationError);
     });
 
-    it("should not be able to update an bank account without any fields", async () => {
+    it("should not be able to update a bank account without any fields", async () => {
       const { isLeft, reason } = await sut.execute<"error">({
         userId,
         bankAccountId: bankAccount.entity.id.value,
@@ -102,7 +116,7 @@ describe("[Use Case] Update bank account", () => {
       expect(reason).toBeInstanceOf(ValidationError);
     });
 
-    it("should not be able to update an bank account with not allowed fields", async () => {
+    it("should not be able to update a bank account with not allowed fields", async () => {
       const { isLeft, reason } = await sut.execute<"error">({
         userId,
         bankAccountId: bankAccount.entity.id.value,

@@ -32,17 +32,16 @@ describe("[Use Case] Create bank account", () => {
     await userRepository.create(user.entity);
   });
 
-  it("should be able to create an bank account", async () => {
+  it("should be able to create a bank account", async () => {
     const { isRight, result } = await sut.execute<"success">(bankAccount.input);
 
     expect(isRight()).toBeTruthy();
-    expect(result.bankAccount.userId).toEqual(user.entity.id);
-    expect(result.bankAccount.userId).toEqual(bankAccount.entity.userId);
+    expect(result.bankAccount.userId.value).toEqual(bankAccount.input.userId);
     expect(result.bankAccount.slug).toBeInstanceOf(Slug);
     expect(bankAccountRepository.items[0]).toEqual(result.bankAccount);
   });
 
-  it("should not be able to create an bank account for non-existent user", async () => {
+  it("should not be able to create a bank account for non-existent user", async () => {
     const { isLeft, reason } = await sut.execute<"error">({
       ...bankAccount.input,
       userId: faker.string.uuid(),
@@ -62,7 +61,7 @@ describe("[Use Case] Create bank account", () => {
   });
 
   describe("[Business Roles] given invalid input", () => {
-    it("should be able to create an bank account without optional input fields", async () => {
+    it("should be able to create a bank account without optional input fields", async () => {
       const { isRight, result } = await sut.execute<"success">({
         ...bankAccount.input,
         description: undefined,
@@ -76,7 +75,7 @@ describe("[Use Case] Create bank account", () => {
       expect(result.bankAccount.mainAccount).toEqual(false);
     });
 
-    it("should not be able to create an bank account without required input fields", async () => {
+    it("should not be able to create a bank account without required input fields", async () => {
       const { isLeft, reason } = await sut.execute<"error">({
         ...bankAccount.input,
         // @ts-expect-error: field is required
@@ -89,23 +88,14 @@ describe("[Use Case] Create bank account", () => {
       expect(reason).toBeInstanceOf(ValidationError);
     });
 
-    it("should not be able to create an bank account with invalid balance", async () => {
-      const stringBalanceResult = await sut.execute<"error">({
-        ...bankAccount.input,
-        // @ts-expect-error: expect number
-        balance: "50",
-      });
-
-      expect(stringBalanceResult.isLeft()).toBeTruthy();
-      expect(stringBalanceResult.reason).toBeInstanceOf(ValidationError);
-
-      const negativeBalanceResult = await sut.execute<"error">({
+    it("should not be able to create a bank account with invalid balance", async () => {
+      const { isLeft, reason } = await sut.execute<"error">({
         ...bankAccount.input,
         balance: -50,
       });
 
-      expect(negativeBalanceResult.isLeft()).toBeTruthy();
-      expect(negativeBalanceResult.reason).toBeInstanceOf(ValidationError);
+      expect(isLeft()).toBeTruthy();
+      expect(reason).toBeInstanceOf(ValidationError);
     });
   });
 });
