@@ -221,10 +221,11 @@ export abstract class Entity {
 
     Object.assign(this, distinctFieldsFromOriginals);
 
-    if ("updatedAt" in this) this.updatedAt = new Date();
+    if (!options.isEarly) {
+      if ("updatedAt" in this) this.updatedAt = new Date();
 
-    if (!options.isEarly)
       for (const definitionEvent of events.definition) definitionEvent();
+    }
 
     return distinctFieldsFromOriginals;
   }
