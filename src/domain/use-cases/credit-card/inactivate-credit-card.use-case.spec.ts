@@ -7,16 +7,20 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { InactivateCreditCardUseCase } from "./inactivate-credit-card.use-case";
 
 let creditCardRepository: InMemoryCreditCardRepository;
+
 let sut: InactivateCreditCardUseCase;
+
 let userId: string;
 let creditCard: ReturnType<typeof makeCreditCard>;
 
 describe("[Use Case] Inactivate credit card", () => {
   beforeEach(async () => {
     creditCardRepository = new InMemoryCreditCardRepository();
+
     sut = new InactivateCreditCardUseCase({
       creditCardRepository,
     });
+
     userId = faker.string.uuid();
     creditCard = makeCreditCard({ userId, bankAccountId: faker.string.uuid() });
 

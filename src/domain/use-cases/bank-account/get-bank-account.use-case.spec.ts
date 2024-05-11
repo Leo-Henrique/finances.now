@@ -6,13 +6,16 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { GetBankAccountUseCase } from "./get-bank-account.use-case";
 
 let bankAccountRepository: InMemoryBankAccountRepository;
+
 let sut: GetBankAccountUseCase;
 let userId: string;
+
 let bankAccount: ReturnType<typeof makeBankAccount>;
 
 describe("[Use Case] Get bank account", () => {
   beforeEach(async () => {
     bankAccountRepository = new InMemoryBankAccountRepository();
+
     sut = new GetBankAccountUseCase({
       bankAccountRepository,
     });
@@ -23,7 +26,7 @@ describe("[Use Case] Get bank account", () => {
     await bankAccountRepository.create(bankAccount.entity);
   });
 
-  it("should be able to get bank account", async () => {
+  it("should be able to get a bank account", async () => {
     const { isRight, result } = await sut.execute<"success">({
       bankAccountSlug: bankAccount.entity.slug.value,
       userId,

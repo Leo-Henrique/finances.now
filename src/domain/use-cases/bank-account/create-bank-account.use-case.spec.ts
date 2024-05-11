@@ -14,7 +14,9 @@ import { CreateBankAccountUseCase } from "./create-bank-account.use-case";
 
 let userRepository: InMemoryUserRepository;
 let bankAccountRepository: InMemoryBankAccountRepository;
+
 let sut: CreateBankAccountUseCase;
+
 let user: ReturnType<typeof makeUser>;
 let bankAccount: ReturnType<typeof makeBankAccount>;
 
@@ -22,10 +24,12 @@ describe("[Use Case] Create bank account", () => {
   beforeEach(async () => {
     userRepository = new InMemoryUserRepository();
     bankAccountRepository = new InMemoryBankAccountRepository();
+
     sut = new CreateBankAccountUseCase({
       userRepository,
       bankAccountRepository,
     });
+
     user = makeUser();
     bankAccount = makeBankAccount({ userId: user.entity.id.value });
 

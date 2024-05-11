@@ -10,7 +10,9 @@ import {
 } from "./list-bank-accounts.use-case";
 
 let bankAccountRepository: InMemoryBankAccountRepository;
+
 let sut: ListBankAccountsUseCase;
+
 let userId: string;
 let bankAccount: ReturnType<typeof makeBankAccount>;
 
@@ -23,6 +25,7 @@ const input: ListBankAccountsUseCaseInput = {
 describe("[Use Case] List bank accounts", () => {
   beforeEach(async () => {
     bankAccountRepository = new InMemoryBankAccountRepository();
+
     sut = new ListBankAccountsUseCase({
       bankAccountRepository,
     });
@@ -121,7 +124,7 @@ describe("[Use Case] List bank accounts", () => {
   });
 
   describe("[Business Roles] given invalid input", () => {
-    it("should not be able to update an bank account with invalid items", async () => {
+    it("should not be able to list bank account with invalid items", async () => {
       const { isLeft, reason } = await sut.execute<"error">({
         ...input,
         items: 100,
@@ -131,7 +134,7 @@ describe("[Use Case] List bank accounts", () => {
       expect(reason).toBeInstanceOf(ValidationError);
     });
 
-    it("should not be able to update an bank account with invalid page", async () => {
+    it("should not be able to list bank account with invalid page", async () => {
       const { isLeft, reason } = await sut.execute<"error">({
         ...input,
         page: 0,

@@ -11,16 +11,20 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { UpdateBankAccountUseCase } from "./update-bank-account.use-case";
 
 let bankAccountRepository: InMemoryBankAccountRepository;
+
 let sut: UpdateBankAccountUseCase;
+
 let userId: string;
 let bankAccount: ReturnType<typeof makeBankAccount>;
 
 describe("[Use Case] Update bank account", () => {
   beforeEach(async () => {
     bankAccountRepository = new InMemoryBankAccountRepository();
+
     sut = new UpdateBankAccountUseCase({
       bankAccountRepository,
     });
+
     userId = faker.string.uuid();
     bankAccount = makeBankAccount({ userId });
 

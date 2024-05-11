@@ -17,7 +17,9 @@ import { CreateCreditCardUseCase } from "./create-credit-card.use-case";
 let userRepository: InMemoryUserRepository;
 let bankAccountRepository: InMemoryBankAccountRepository;
 let creditCardRepository: InMemoryCreditCardRepository;
+
 let sut: CreateCreditCardUseCase;
+
 let user: ReturnType<typeof makeUser>;
 let bankAccount: ReturnType<typeof makeBankAccount>;
 let creditCard: ReturnType<typeof makeCreditCard>;
@@ -27,11 +29,13 @@ describe("[Use Case] Create credit card", () => {
     userRepository = new InMemoryUserRepository();
     bankAccountRepository = new InMemoryBankAccountRepository();
     creditCardRepository = new InMemoryCreditCardRepository();
+
     sut = new CreateCreditCardUseCase({
       userRepository,
       bankAccountRepository,
       creditCardRepository,
     });
+
     user = makeUser();
     bankAccount = makeBankAccount({ userId: user.entity.id.value });
     creditCard = makeCreditCard({

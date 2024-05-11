@@ -7,16 +7,20 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { InactivateBankAccountUseCase } from "./inactivate-bank-account.use-case";
 
 let bankAccountRepository: InMemoryBankAccountRepository;
+
 let sut: InactivateBankAccountUseCase;
+
 let userId: string;
 let bankAccount: ReturnType<typeof makeBankAccount>;
 
 describe("[Use Case] Inactivate bank account", () => {
   beforeEach(async () => {
     bankAccountRepository = new InMemoryBankAccountRepository();
+
     sut = new InactivateBankAccountUseCase({
       bankAccountRepository,
     });
+
     userId = faker.string.uuid();
     bankAccount = makeBankAccount({ userId });
 

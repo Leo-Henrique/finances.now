@@ -14,7 +14,9 @@ import { UpdateCreditCardUseCase } from "./update-credit-card.use-case";
 
 let creditCardRepository: InMemoryCreditCardRepository;
 let bankAccountRepository: InMemoryBankAccountRepository;
+
 let sut: UpdateCreditCardUseCase;
+
 let userId: string;
 let bankAccount: ReturnType<typeof makeBankAccount>;
 let creditCard: ReturnType<typeof makeCreditCard>;
@@ -23,10 +25,12 @@ describe("[Use Case] Update credit card", () => {
   beforeEach(async () => {
     creditCardRepository = new InMemoryCreditCardRepository();
     bankAccountRepository = new InMemoryBankAccountRepository();
+
     sut = new UpdateCreditCardUseCase({
       creditCardRepository,
       bankAccountRepository,
     });
+
     userId = faker.string.uuid();
     bankAccount = makeBankAccount({ userId });
     creditCard = makeCreditCard({
