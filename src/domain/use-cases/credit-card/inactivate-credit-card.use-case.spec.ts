@@ -1,29 +1,38 @@
 import { ValidationError } from "@/core/errors/errors";
 import { ResourceNotFoundError } from "@/domain/errors";
 import { faker } from "@faker-js/faker";
+import { makeBankAccount } from "test/factories/make-bank-account";
 import { makeCreditCard } from "test/factories/make-credit-card";
+import { InMemoryBankAccountRepository } from "test/repositories/in-memory-bank-account.repository";
 import { InMemoryCreditCardRepository } from "test/repositories/in-memory-credit-card.repository";
 import { beforeEach, describe, expect, it } from "vitest";
 import { InactivateCreditCardUseCase } from "./inactivate-credit-card.use-case";
 
+let bankAccountRepository: InMemoryBankAccountRepository;
 let creditCardRepository: InMemoryCreditCardRepository;
 
 let sut: InactivateCreditCardUseCase;
 
 let userId: string;
+let bankAccount: ReturnType<typeof makeBankAccount>;
 let creditCard: ReturnType<typeof makeCreditCard>;
 
 describe("[Use Case] Inactivate credit card", () => {
   beforeEach(async () => {
-    creditCardRepository = new InMemoryCreditCardRepository();
+    bankAccountRepository = new InMemoryBankAccountRepository();
+    creditCardRepository = new InMemoryCreditCardRepository({
+      bankAccountRepository,
+    });
 
     sut = new InactivateCreditCardUseCase({
       creditCardRepository,
     });
 
     userId = faker.string.uuid();
-    creditCard = makeCreditCard({ userId, bankAccountId: faker.string.uuid() });
+    bankAccount = makeBankAccount({ userId });
+    creditCard = makeCreditCard({ bankAccountId: bankAccount.entity.id.value });
 
+    await bankAccountRepository.create(bankAccount.entity);
     await creditCardRepository.create(creditCard.entity);
   });
 

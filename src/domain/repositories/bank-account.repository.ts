@@ -14,6 +14,7 @@ type CoreOperationsBankAccountRepository = BaseRepository<
 
 export interface BankAccountRepository
   extends CoreOperationsBankAccountRepository {
+  findUniqueById(bankAccountId: string): Promise<BankAccount | null>;
   findUniqueFromUserById(
     userId: string,
     bankAccountId: string,

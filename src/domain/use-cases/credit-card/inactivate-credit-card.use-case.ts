@@ -35,8 +35,8 @@ export class InactivateCreditCardUseCase extends UseCase<
   }
 
   protected async handle({
-    creditCardId,
     userId,
+    creditCardId,
   }: InactivateCreditCardUseCaseInput) {
     const creditCard =
       await this.deps.creditCardRepository.findUniqueFromUserById(

@@ -7,51 +7,48 @@ import {
 import { faker } from "@faker-js/faker";
 import { makeBankAccount } from "test/factories/make-bank-account";
 import { makeCreditCard } from "test/factories/make-credit-card";
-import { makeUser } from "test/factories/make-user";
 import { InMemoryBankAccountRepository } from "test/repositories/in-memory-bank-account.repository";
 import { InMemoryCreditCardRepository } from "test/repositories/in-memory-credit-card.repository";
-import { InMemoryUserRepository } from "test/repositories/in-memory-user.repository";
 import { beforeEach, describe, expect, it } from "vitest";
 import { CreateCreditCardUseCase } from "./create-credit-card.use-case";
 
-let userRepository: InMemoryUserRepository;
 let bankAccountRepository: InMemoryBankAccountRepository;
 let creditCardRepository: InMemoryCreditCardRepository;
 
 let sut: CreateCreditCardUseCase;
 
-let user: ReturnType<typeof makeUser>;
+let userId: string;
 let bankAccount: ReturnType<typeof makeBankAccount>;
 let creditCard: ReturnType<typeof makeCreditCard>;
 
 describe("[Use Case] Create credit card", () => {
   beforeEach(async () => {
-    userRepository = new InMemoryUserRepository();
     bankAccountRepository = new InMemoryBankAccountRepository();
-    creditCardRepository = new InMemoryCreditCardRepository();
+    creditCardRepository = new InMemoryCreditCardRepository({
+      bankAccountRepository,
+    });
 
     sut = new CreateCreditCardUseCase({
-      userRepository,
       bankAccountRepository,
       creditCardRepository,
     });
 
-    user = makeUser();
-    bankAccount = makeBankAccount({ userId: user.entity.id.value });
+    userId = faker.string.uuid();
+    bankAccount = makeBankAccount({ userId });
     creditCard = makeCreditCard({
-      userId: user.entity.id.value,
       bankAccountId: bankAccount.entity.id.value,
     });
 
-    await userRepository.create(user.entity);
     await bankAccountRepository.create(bankAccount.entity);
   });
 
   it("should be able to create a credit card", async () => {
-    const { isRight, result } = await sut.execute<"success">(creditCard.input);
+    const { isRight, result } = await sut.execute<"success">({
+      userId,
+      ...creditCard.input,
+    });
 
     expect(isRight()).toBeTruthy();
-    expect(result.creditCard.userId.value).toEqual(creditCard.input.userId);
     expect(result.creditCard.bankAccountId.value).toEqual(
       creditCard.input.bankAccountId,
     );
@@ -59,18 +56,9 @@ describe("[Use Case] Create credit card", () => {
     expect(creditCardRepository.items[0]).toEqual(result.creditCard);
   });
 
-  it("should not be able to create a credit card for non-existent user", async () => {
-    const { isLeft, reason } = await sut.execute<"error">({
-      ...creditCard.input,
-      userId: faker.string.uuid(),
-    });
-
-    expect(isLeft()).toBeTruthy();
-    expect(reason).toBeInstanceOf(ResourceNotFoundError);
-  });
-
   it("should not be able to create a credit card for non-existent bank account", async () => {
     const { isLeft, reason } = await sut.execute<"error">({
+      userId,
       ...creditCard.input,
       bankAccountId: faker.string.uuid(),
     });
@@ -87,6 +75,7 @@ describe("[Use Case] Create credit card", () => {
     await bankAccountRepository.create(bankAccountFromAnotherUser.entity);
 
     const { isLeft, reason } = await sut.execute<"error">({
+      userId,
       ...creditCard.input,
       bankAccountId: bankAccountFromAnotherUser.entity.id.value,
     });
@@ -100,7 +89,10 @@ describe("[Use Case] Create credit card", () => {
       inactivatedAt: new Date(),
     });
 
-    const { isLeft, reason } = await sut.execute<"error">(creditCard.input);
+    const { isLeft, reason } = await sut.execute<"error">({
+      userId,
+      ...creditCard.input,
+    });
 
     expect(isLeft()).toBeTruthy();
     expect(reason).toBeInstanceOf(ResourceNotFoundError);
@@ -109,7 +101,10 @@ describe("[Use Case] Create credit card", () => {
   it("should not be able to create a credit card with one name already exists for that same user", async () => {
     await creditCardRepository.create(creditCard.entity);
 
-    const { isLeft, reason } = await sut.execute<"error">(creditCard.input);
+    const { isLeft, reason } = await sut.execute<"error">({
+      userId,
+      ...creditCard.input,
+    });
 
     expect(isLeft()).toBeTruthy();
     expect(reason).toBeInstanceOf(ResourceAlreadyExistsError);
@@ -118,6 +113,7 @@ describe("[Use Case] Create credit card", () => {
   describe("[Business Roles] given invalid input", () => {
     it("should be able to create a credit card without optional input fields", async () => {
       const { isRight, result } = await sut.execute<"success">({
+        userId,
         ...creditCard.input,
         description: undefined,
         mainCard: undefined,
@@ -130,7 +126,7 @@ describe("[Use Case] Create credit card", () => {
 
     it("should not be able to create a credit card without required input fields", async () => {
       const { isLeft, reason } = await sut.execute<"error">({
-        ...bankAccount.input,
+        ...creditCard.input,
         // @ts-expect-error: field is required
         userId: undefined,
         // @ts-expect-error: field is required
@@ -151,6 +147,7 @@ describe("[Use Case] Create credit card", () => {
 
     it("should not be able to create a credit card with invalid limit", async () => {
       const { isLeft, reason } = await sut.execute<"error">({
+        userId,
         ...creditCard.input,
         limit: -50,
       });
@@ -161,10 +158,12 @@ describe("[Use Case] Create credit card", () => {
 
     it("should not be able to create a credit card with invalid invoice closing day", async () => {
       const dayZeroResult = await sut.execute<"error">({
+        userId,
         ...creditCard.input,
         invoiceClosingDay: 0,
       });
       const dayThirtyTwoResult = await sut.execute<"error">({
+        userId,
         ...creditCard.input,
         invoiceClosingDay: 32,
       });
@@ -177,10 +176,12 @@ describe("[Use Case] Create credit card", () => {
 
     it("should not be able to create a credit card with invalid invoice due day", async () => {
       const dayZeroResult = await sut.execute<"error">({
+        userId,
         ...creditCard.input,
         invoiceDueDay: 0,
       });
       const dayThirtyTwoResult = await sut.execute<"error">({
+        userId,
         ...creditCard.input,
         invoiceDueDay: 32,
       });

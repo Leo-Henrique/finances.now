@@ -12,8 +12,8 @@ import { InMemoryCreditCardRepository } from "test/repositories/in-memory-credit
 import { beforeEach, describe, expect, it } from "vitest";
 import { UpdateCreditCardUseCase } from "./update-credit-card.use-case";
 
-let creditCardRepository: InMemoryCreditCardRepository;
 let bankAccountRepository: InMemoryBankAccountRepository;
+let creditCardRepository: InMemoryCreditCardRepository;
 
 let sut: UpdateCreditCardUseCase;
 
@@ -23,8 +23,10 @@ let creditCard: ReturnType<typeof makeCreditCard>;
 
 describe("[Use Case] Update credit card", () => {
   beforeEach(async () => {
-    creditCardRepository = new InMemoryCreditCardRepository();
     bankAccountRepository = new InMemoryBankAccountRepository();
+    creditCardRepository = new InMemoryCreditCardRepository({
+      bankAccountRepository,
+    });
 
     sut = new UpdateCreditCardUseCase({
       creditCardRepository,
@@ -33,10 +35,7 @@ describe("[Use Case] Update credit card", () => {
 
     userId = faker.string.uuid();
     bankAccount = makeBankAccount({ userId });
-    creditCard = makeCreditCard({
-      userId,
-      bankAccountId: bankAccount.entity.id.value,
-    });
+    creditCard = makeCreditCard({ bankAccountId: bankAccount.entity.id.value });
 
     await bankAccountRepository.create(bankAccount.entity);
     await creditCardRepository.create(creditCard.entity);
@@ -126,7 +125,6 @@ describe("[Use Case] Update credit card", () => {
 
   it("should not be able to update a credit card with one name already exists for that same user", async () => {
     const anotherCreditCard = makeCreditCard({
-      userId,
       bankAccountId: bankAccount.entity.id.value,
     });
 

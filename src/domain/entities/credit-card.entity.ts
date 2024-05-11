@@ -26,14 +26,6 @@ export class CreditCardEntity
   extends BaseEntity
   implements EntityDefinition<CreditCardEntity>
 {
-  defineUserId() {
-    return {
-      schema: UniqueEntityId.schema,
-      transform: (val: string) => new UniqueEntityId(val),
-      readonly: true,
-    };
-  }
-
   defineBankAccountId() {
     return {
       schema: UniqueEntityId.schema,

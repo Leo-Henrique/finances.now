@@ -1,4 +1,5 @@
 import { Either, left, right } from "@/core/either";
+import { UniqueEntityId } from "@/core/entities/unique-entity-id";
 import { UseCase } from "@/core/use-case";
 import {
   CreditCard,
@@ -10,10 +11,11 @@ import {
 } from "@/domain/errors";
 import { BankAccountRepository } from "@/domain/repositories/bank-account.repository";
 import { CreditCardRepository } from "@/domain/repositories/credit-card.repository";
-import { UserRepository } from "@/domain/repositories/user.repository";
 import { z } from "zod";
 
-const CreateCreditCardUseCaseSchema = CreditCardEntity.createSchema;
+const CreateCreditCardUseCaseSchema = CreditCardEntity.createSchema.extend({
+  userId: UniqueEntityId.schema,
+});
 
 type CreateCreditCardUseCaseInput = z.infer<
   typeof CreateCreditCardUseCaseSchema
@@ -25,7 +27,6 @@ type CreateCreditCardUseCaseOutput = Either<
 >;
 
 type CreateCreditCardUseCaseDeps = {
-  userRepository: UserRepository;
   bankAccountRepository: BankAccountRepository;
   creditCardRepository: CreditCardRepository;
 };
@@ -45,10 +46,6 @@ export class CreateCreditCardUseCase extends UseCase<
     name,
     ...restInput
   }: CreateCreditCardUseCaseInput) {
-    const user = await this.deps.userRepository.findUniqueById(userId);
-
-    if (!user) return left(new ResourceNotFoundError("usuário"));
-
     const bankAccount =
       await this.deps.bankAccountRepository.findUniqueActivatedFromUserById(
         userId,
@@ -67,7 +64,6 @@ export class CreateCreditCardUseCase extends UseCase<
       return left(new ResourceAlreadyExistsError("cartão de crédito"));
 
     const creditCard = CreditCardEntity.create({
-      userId,
       bankAccountId,
       name,
       ...restInput,

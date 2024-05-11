@@ -7,16 +7,14 @@ import { SetRequired } from "type-fest";
 
 type MakeCreditCardInput = SetRequired<
   Partial<CreditCardDataCreate>,
-  "userId" | "bankAccountId"
+  "bankAccountId"
 >;
 
 export function makeCreditCard({
-  userId,
   bankAccountId,
   ...override
 }: MakeCreditCardInput) {
   const input: CreditCardDataCreate = {
-    userId,
     bankAccountId,
     name: faker.lorem.sentence(),
     description: faker.string.alphanumeric({ length: { min: 1, max: 255 } }),
