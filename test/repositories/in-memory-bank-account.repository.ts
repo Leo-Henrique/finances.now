@@ -15,6 +15,16 @@ export class InMemoryBankAccountRepository
   >
   implements BankAccountRepository
 {
+  public async findUniqueById(bankAccountId: string) {
+    const bankAccount = this.items.find(item => {
+      return item.id.value === bankAccountId;
+    });
+
+    if (!bankAccount) return null;
+
+    return bankAccount;
+  }
+
   public async findUniqueFromUserById(userId: string, bankAccountId: string) {
     const bankAccount = this.items.find(item => {
       return item.userId.value === userId && item.id.value === bankAccountId;
@@ -85,5 +95,35 @@ export class InMemoryBankAccountRepository
     );
 
     return bankAccounts.length;
+  }
+
+  public async updateUniqueByIdIncreasingBalance(
+    bankAccountId: string,
+    amount: number,
+  ): Promise<void> {
+    const bankAccount = await this.findUniqueById(bankAccountId);
+
+    if (!bankAccount) return;
+
+    const updateBalance = bankAccount.update({
+      balance: bankAccount.balance + amount,
+    });
+
+    await this.update(bankAccount, updateBalance);
+  }
+
+  public async updateUniqueByIdDecreasingBalance(
+    bankAccountId: string,
+    amount: number,
+  ): Promise<void> {
+    const bankAccount = await this.findUniqueById(bankAccountId);
+
+    if (!bankAccount) return;
+
+    const updateBalance = bankAccount.update({
+      balance: bankAccount.balance - amount,
+    });
+
+    await this.update(bankAccount, updateBalance);
   }
 }

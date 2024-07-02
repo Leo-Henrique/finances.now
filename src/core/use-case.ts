@@ -1,12 +1,13 @@
 import { z } from "zod";
 import {
   Either,
+  EitherReason,
+  EitherResult,
   ExpectedResultOfEither,
   InferResultOfEither,
   left,
   right,
 } from "./either";
-import { DomainError } from "./errors/domain-error";
 import { ValidationError } from "./errors/errors";
 
 type UseCaseInputSchema<Input> = z.ZodObject<{
@@ -17,7 +18,7 @@ type UseCaseDependencies = object;
 
 export abstract class UseCase<
   Input,
-  Output extends Either<DomainError | null, object>,
+  Output extends Either<EitherReason, EitherResult>,
   Dependencies extends UseCaseDependencies | undefined = undefined,
 > {
   private inputSchema: UseCaseInputSchema<Input> | undefined = undefined;
