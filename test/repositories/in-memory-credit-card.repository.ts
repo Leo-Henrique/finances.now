@@ -55,6 +55,34 @@ export class InMemoryCreditCardRepository
     return creditCard;
   }
 
+  public async findUniqueActivatedFromUserById(
+    userId: string,
+    creditCardId: string,
+  ) {
+    const creditCard = this.items.find(item => {
+      return item.id.value === creditCardId && item.inactivatedAt === null;
+    });
+
+    if (!creditCard) return null;
+
+    const userIsOwner = await this.userIsOwnerFromBankAccount(
+      creditCard.bankAccountId.value,
+      userId,
+    );
+
+    if (!userIsOwner) return null;
+
+    const activatedBankAccount =
+      await this.deps.bankAccountRepository.findUniqueActivatedFromUserById(
+        userId,
+        creditCard.bankAccountId.value,
+      );
+
+    if (!activatedBankAccount) return null;
+
+    return creditCard;
+  }
+
   public async findUniqueFromUserByName(userId: string, name: string) {
     const creditCard = this.items.find(item => {
       return item.name.value === name;

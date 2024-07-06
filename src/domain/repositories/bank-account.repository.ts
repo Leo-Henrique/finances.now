@@ -36,4 +36,12 @@ export interface BankAccountRepository
     params: PaginationParams,
   ): Promise<BankAccount[]>;
   countManyFromUser(userId: string): Promise<number>;
+  updateUniqueByIdIncreasingBalance(
+    bankAccountId: string,
+    amount: number,
+  ): Promise<void>;
+  updateUniqueByIdDecreasingBalance(
+    bankAccountId: string,
+    amount: number,
+  ): Promise<void>;
 }

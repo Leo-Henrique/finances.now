@@ -1,7 +1,11 @@
 import { DomainError } from "@/core/errors/domain-error";
 import { toPascalCase } from "@/utils/toPascalCase";
 
-type Resources = "usuário" | "conta bancária" | "cartão de crédito";
+type Resources =
+  | "usuário"
+  | "conta bancária"
+  | "cartão de crédito"
+  | "categoria de transação";
 
 export class ResourceAlreadyExistsError extends DomainError {
   public error = "ResourceAlreadyExistsError";
@@ -50,5 +54,14 @@ export class NewPasswordSameAsCurrentError extends DomainError {
 
   constructor() {
     super("A nova senha deve ser diferente da atual.");
+  }
+}
+
+export class FailedToCreateTransactionError extends DomainError {
+  public error = "FailedToCreateTransactionError";
+  public HTTPStatusCode = 500;
+
+  constructor(public debug: unknown) {
+    super("Falha ao criar uma nova transação.");
   }
 }

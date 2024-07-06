@@ -18,6 +18,10 @@ export interface CreditCardRepository
     userId: string,
     creditCardId: string,
   ): Promise<CreditCard | null>;
+  findUniqueActivatedFromUserById(
+    userId: string,
+    creditCardId: string,
+  ): Promise<CreditCard | null>;
   findUniqueFromUserByName(
     userId: string,
     name: string,

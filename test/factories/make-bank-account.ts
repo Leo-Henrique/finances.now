@@ -15,7 +15,7 @@ export function makeBankAccount({ userId, ...override }: MakeBankAccountInput) {
     userId,
     institution: faker.company.name(),
     description: faker.string.alphanumeric({ length: { min: 1, max: 255 } }),
-    balance: faker.number.int(),
+    balance: faker.number.int(100),
     mainAccount: faker.datatype.boolean(),
     ...override,
   };
