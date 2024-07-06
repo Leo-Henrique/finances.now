@@ -9,6 +9,7 @@ import {
   EntityInstance,
   EntityUnknownDefinition,
 } from "../@types/entity";
+import { UniqueEntityId } from "./unique-entity-id";
 
 export const definitionMethodName = "define" as const;
 
@@ -232,5 +233,17 @@ export abstract class Entity {
 
   protected earlyUpdate<Class extends Entity>(input: EntityDataUpdate<Class>) {
     this.update(input as unknown as EntityDataUpdate<this>, { isEarly: true });
+  }
+
+  public clone() {
+    const clone = Object.assign(
+      Object.create(Object.getPrototypeOf(this)),
+      this,
+    ) as unknown as EntityInstance<this>;
+
+    if ("id" in clone && clone.id instanceof UniqueEntityId)
+      clone.id = new UniqueEntityId();
+
+    return clone;
   }
 }
