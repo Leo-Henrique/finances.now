@@ -1,5 +1,9 @@
 import { DomainError } from "./errors/domain-error";
 
+export type EitherReason = DomainError | null;
+
+export type EitherResult = object | null;
+
 export type Either<Reason, Result> = Left<Reason> | Right<Result>;
 
 export type ExtractError<Either> =
@@ -43,12 +47,14 @@ export class Right<Result> {
   }
 }
 
-export const left = <Reason extends DomainError | null>(
+export const left = <Reason extends EitherReason>(
   reason: Reason,
 ): Left<Reason> => {
   return new Left<Reason>(reason);
 };
 
-export const right = <Result extends object>(result: Result): Right<Result> => {
+export const right = <Result extends EitherResult>(
+  result: Result,
+): Right<Result> => {
   return new Right<Result>(result);
 };
