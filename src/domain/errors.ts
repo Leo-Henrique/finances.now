@@ -1,5 +1,5 @@
 import { DomainError } from "@/core/errors/domain-error";
-import { toPascalCase } from "@/utils/toPascalCase";
+import { capitalizeFirstWord } from "@/utils/capitalize-text";
 
 type Resources =
   | "usuário"
@@ -13,7 +13,7 @@ export class ResourceAlreadyExistsError extends DomainError {
   public debug = null;
 
   constructor(resource: Resources) {
-    super(`${toPascalCase(resource)} já existente.`);
+    super(`${capitalizeFirstWord(resource)} já existente.`);
   }
 }
 
@@ -23,7 +23,7 @@ export class ResourceNotFoundError extends DomainError {
   public debug = null;
 
   constructor(resource: Resources) {
-    super(`${toPascalCase(resource)} inexistente.`);
+    super(`${capitalizeFirstWord(resource)} inexistente.`);
   }
 }
 
