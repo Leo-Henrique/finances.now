@@ -23,4 +23,8 @@ export interface DebitExpenseTransactionRepository
   findUniqueEndOfCurrentRecurrence(
     originId: string,
   ): Promise<DebitExpenseTransaction | null>;
+  findUniqueFromUserById(
+    userId: string,
+    debitExpenseTransactionId: string,
+  ): Promise<DebitExpenseTransaction | null>;
 }

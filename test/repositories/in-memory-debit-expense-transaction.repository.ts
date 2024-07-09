@@ -4,9 +4,14 @@ import {
   DebitExpenseTransactionDataUpdated,
   DebitExpenseTransactionEntity,
 } from "@/domain/entities/debit-expense-transaction.entity";
+import { BankAccountRepository } from "@/domain/repositories/bank-account.repository";
 import { DebitExpenseTransactionRepository } from "@/domain/repositories/debit-expense-transaction.repository";
 
 export const debitExpenseTransactionsNumberPerTimeInRecurrence = 500;
+
+type InMemoryDebitExpenseTransactionRepositoryDeps = {
+  bankAccountRepository: BankAccountRepository;
+};
 
 export class InMemoryDebitExpenseTransactionRepository
   extends InMemoryBaseRepository<
@@ -16,6 +21,12 @@ export class InMemoryDebitExpenseTransactionRepository
   >
   implements DebitExpenseTransactionRepository
 {
+  public constructor(
+    private deps: InMemoryDebitExpenseTransactionRepositoryDeps,
+  ) {
+    super();
+  }
+
   public async createManyOfRecurrence(
     originTransaction: DebitExpenseTransaction,
     lastTransactedDate?: Date,
@@ -97,5 +108,26 @@ export class InMemoryDebitExpenseTransactionRepository
     if (!recurringTransactions.length) return null;
 
     return recurringTransactions[recurringTransactions.length - 1];
+  }
+
+  public async findUniqueFromUserById(
+    userId: string,
+    debitExpenseTransactionId: string,
+  ) {
+    const debitExpenseTransaction = this.items.find(item => {
+      return item.id.value === debitExpenseTransactionId;
+    });
+
+    if (!debitExpenseTransaction) return null;
+
+    const bankAccount =
+      await this.deps.bankAccountRepository.findUniqueFromUserById(
+        userId,
+        debitExpenseTransaction.bankAccountId.value,
+      );
+
+    if (!bankAccount) return null;
+
+    return debitExpenseTransaction;
   }
 }

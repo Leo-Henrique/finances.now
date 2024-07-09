@@ -23,4 +23,8 @@ export interface TransferenceTransactionRepository
   findUniqueEndOfCurrentRecurrence(
     originId: string,
   ): Promise<TransferenceTransaction | null>;
+  findUniqueFromUserById(
+    userId: string,
+    transferenceTransactionId: string,
+  ): Promise<TransferenceTransaction | null>;
 }

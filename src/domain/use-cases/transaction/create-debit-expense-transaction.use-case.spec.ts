@@ -34,7 +34,7 @@ describe("[Use Case] Create debit expense transaction", () => {
     bankAccountRepository = new InMemoryBankAccountRepository();
     transactionCategoryRepository = new InMemoryTransactionCategoryRepository();
     debitExpenseTransactionRepository =
-      new InMemoryDebitExpenseTransactionRepository();
+      new InMemoryDebitExpenseTransactionRepository({ bankAccountRepository });
     jobSchedulingService = new InMemoryJobSchedulingService();
     unitOfWork = new FakeUnitOfWork();
 

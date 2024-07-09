@@ -4,9 +4,14 @@ import {
   EarningTransactionDataUpdated,
   EarningTransactionEntity,
 } from "@/domain/entities/earning-transaction.entity";
+import { BankAccountRepository } from "@/domain/repositories/bank-account.repository";
 import { EarningTransactionRepository } from "@/domain/repositories/earning-transaction.repository";
 
 export const earningTransactionsNumberPerTimeInRecurrence = 500;
+
+type InMemoryEarningTransactionRepositoryDeps = {
+  bankAccountRepository: BankAccountRepository;
+};
 
 export class InMemoryEarningTransactionRepository
   extends InMemoryBaseRepository<
@@ -16,6 +21,10 @@ export class InMemoryEarningTransactionRepository
   >
   implements EarningTransactionRepository
 {
+  public constructor(private deps: InMemoryEarningTransactionRepositoryDeps) {
+    super();
+  }
+
   public async createManyOfRecurrence(
     originTransaction: EarningTransaction,
     lastTransactedDate?: Date,
@@ -97,5 +106,26 @@ export class InMemoryEarningTransactionRepository
     if (!recurringTransactions.length) return null;
 
     return recurringTransactions[recurringTransactions.length - 1];
+  }
+
+  public async findUniqueFromUserById(
+    userId: string,
+    earningTransactionId: string,
+  ) {
+    const earningTransaction = this.items.find(item => {
+      return item.id.value === earningTransactionId;
+    });
+
+    if (!earningTransaction) return null;
+
+    const bankAccount =
+      await this.deps.bankAccountRepository.findUniqueFromUserById(
+        userId,
+        earningTransaction.bankAccountId.value,
+      );
+
+    if (!bankAccount) return null;
+
+    return earningTransaction;
   }
 }

@@ -23,4 +23,8 @@ export interface EarningTransactionRepository
   findUniqueEndOfCurrentRecurrence(
     originId: string,
   ): Promise<EarningTransaction | null>;
+  findUniqueFromUserById(
+    userId: string,
+    earningTransactionId: string,
+  ): Promise<EarningTransaction | null>;
 }

@@ -33,7 +33,9 @@ describe("[Use Case] Create earning transaction", () => {
   beforeEach(async () => {
     bankAccountRepository = new InMemoryBankAccountRepository();
     transactionCategoryRepository = new InMemoryTransactionCategoryRepository();
-    earningTransactionRepository = new InMemoryEarningTransactionRepository();
+    earningTransactionRepository = new InMemoryEarningTransactionRepository({
+      bankAccountRepository,
+    });
     jobSchedulingService = new InMemoryJobSchedulingService();
     unitOfWork = new FakeUnitOfWork();
 

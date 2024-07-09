@@ -5,7 +5,8 @@ type Resources =
   | "usuário"
   | "conta bancária"
   | "cartão de crédito"
-  | "categoria de transação";
+  | "categoria de transação"
+  | "transação";
 
 export class ResourceAlreadyExistsError extends DomainError {
   public error = "ResourceAlreadyExistsError";
@@ -63,5 +64,15 @@ export class FailedToCreateTransactionError extends DomainError {
 
   constructor(public debug: unknown) {
     super("Falha ao criar uma nova transação.");
+  }
+}
+
+export class TransactionAlreadyAccomplishedError extends DomainError {
+  public error = "TransactionAlreadyAccomplishedError";
+  public HTTPStatusCode = 400;
+  public debug = null;
+
+  constructor() {
+    super("A transação já foi paga.");
   }
 }

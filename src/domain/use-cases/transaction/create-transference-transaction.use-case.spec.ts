@@ -32,7 +32,7 @@ describe("[Use Case] Create transference transaction", () => {
   beforeEach(async () => {
     bankAccountRepository = new InMemoryBankAccountRepository();
     transferenceTransactionRepository =
-      new InMemoryTransferenceTransactionRepository();
+      new InMemoryTransferenceTransactionRepository({ bankAccountRepository });
     jobSchedulingService = new InMemoryJobSchedulingService();
     unitOfWork = new FakeUnitOfWork();
 
