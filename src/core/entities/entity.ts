@@ -3,6 +3,7 @@ import {
   EntityData,
   EntityDataCreate,
   EntityDataCreateZodShape,
+  EntityDataEarlyUpdate,
   EntityDataUpdate,
   EntityDataUpdateZodShape,
   EntityDataZodShape,
@@ -231,7 +232,9 @@ export abstract class Entity {
     return distinctFieldsFromOriginals;
   }
 
-  protected earlyUpdate<Class extends Entity>(input: EntityDataUpdate<Class>) {
+  protected earlyUpdate<Class extends Entity>(
+    input: EntityDataEarlyUpdate<Class>,
+  ) {
     this.update(input as unknown as EntityDataUpdate<this>, { isEarly: true });
   }
 

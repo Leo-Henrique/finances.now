@@ -28,3 +28,13 @@ export type EntityDataUpdate<Class extends Entity> = z.infer<
 export type EntityDataUpdated<Class extends Entity> = {
   [K in keyof EntityDataUpdate<Class>]: EntityData<Class>[K];
 };
+
+export type EntityDataEarlyUpdateZodShape<Class extends Entity> = {
+  [K in keyof Class as FieldName<K>]: z.ZodOptional<
+    GetFieldDefinition<Class[K], "schema">
+  >;
+};
+
+export type EntityDataEarlyUpdate<Class extends Entity> = z.infer<
+  z.ZodObject<EntityDataEarlyUpdateZodShape<Class>>
+>;
