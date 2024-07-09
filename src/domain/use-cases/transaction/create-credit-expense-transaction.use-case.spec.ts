@@ -256,7 +256,7 @@ describe("[Use Case] Create credit expense transaction", () => {
           expect(transaction.description).toEqual(
             originTransaction.description,
           );
-          expect(transaction.paid).toBeFalsy();
+          expect(transaction.isAccomplished).toBeFalsy();
           expect(transaction.recurrencePeriod).toBeNull();
           expect(transaction.recurrenceLimit).toBeNull();
           expect(transaction.recurrenceAmount).toBeNull();

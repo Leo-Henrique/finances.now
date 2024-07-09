@@ -111,11 +111,13 @@ describe("[Use Case] Create transference transaction", () => {
       userId,
       ...transferenceTransaction.input,
       amount,
-      paid: true,
+      isAccomplished: true,
     });
 
     expect(isRight()).toBeTruthy();
-    expect(transferenceTransactionRepository.items[0].paid).toBeTruthy();
+    expect(
+      transferenceTransactionRepository.items[0].isAccomplished,
+    ).toBeTruthy();
     expect(bankAccountRepository.items[0].balance).toEqual(
       originBankAccountBalance - amount,
     );
@@ -124,7 +126,7 @@ describe("[Use Case] Create transference transaction", () => {
     );
   });
 
-  it("should not be able to accomplish transaction when has been not marked if paid", async () => {
+  it("should not be able to accomplish transaction when has been not marked if transferred", async () => {
     const originBankAccountBalance = bankAccountRepository.items[0].balance;
     const destinyBankAccountBalance = bankAccountRepository.items[1].balance;
     const amount = 50;
@@ -133,11 +135,13 @@ describe("[Use Case] Create transference transaction", () => {
       userId,
       ...transferenceTransaction.input,
       amount,
-      paid: false,
+      isAccomplished: false,
     });
 
     expect(isRight()).toBeTruthy();
-    expect(transferenceTransactionRepository.items[0].paid).toBeFalsy();
+    expect(
+      transferenceTransactionRepository.items[0].isAccomplished,
+    ).toBeFalsy();
     expect(bankAccountRepository.items[0].balance).toEqual(
       originBankAccountBalance,
     );
@@ -288,7 +292,7 @@ describe("[Use Case] Create transference transaction", () => {
           expect(transaction.description).toEqual(
             originTransaction.description,
           );
-          expect(transaction.paid).toBeFalsy();
+          expect(transaction.isAccomplished).toBeFalsy();
           expect(transaction.recurrencePeriod).toBeNull();
           expect(transaction.recurrenceLimit).toBeNull();
           expect(transaction.recurrenceAmount).toBeNull();

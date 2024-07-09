@@ -75,7 +75,7 @@ export class CreateEarningTransactionUseCase extends UseCase<
       categoryId,
       ...restInput,
     });
-    const { paid, amount, recurrencePeriod, recurrenceLimit } =
+    const { isAccomplished, amount, recurrencePeriod, recurrenceLimit } =
       earningTransaction;
 
     try {
@@ -83,7 +83,7 @@ export class CreateEarningTransactionUseCase extends UseCase<
 
       await this.deps.earningTransactionRepository.create(earningTransaction);
 
-      if (paid) {
+      if (isAccomplished) {
         await this.deps.bankAccountRepository.updateUniqueByIdIncreasingBalance(
           bankAccountId,
           amount,

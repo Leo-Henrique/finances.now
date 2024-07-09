@@ -22,7 +22,7 @@ const createCreditExpenseTransactionUseCaseSchema =
     .extend({
       userId: UniqueEntityId.schema,
     })
-    .omit({ paid: true });
+    .omit({ isAccomplished: true });
 
 type CreateCreditExpenseTransactionUseCaseInput = z.infer<
   typeof createCreditExpenseTransactionUseCaseSchema

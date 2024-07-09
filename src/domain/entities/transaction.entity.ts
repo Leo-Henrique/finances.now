@@ -41,7 +41,7 @@ export abstract class TransactionEntity
     };
   }
 
-  definePaid() {
+  defineIsAccomplished() {
     return {
       schema: z.boolean(),
       default: false,

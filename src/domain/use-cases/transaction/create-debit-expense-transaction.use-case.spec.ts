@@ -111,11 +111,13 @@ describe("[Use Case] Create debit expense transaction", () => {
       userId,
       ...debitExpenseTransaction.input,
       amount,
-      paid: true,
+      isAccomplished: true,
     });
 
     expect(isRight()).toBeTruthy();
-    expect(debitExpenseTransactionRepository.items[0].paid).toBeTruthy();
+    expect(
+      debitExpenseTransactionRepository.items[0].isAccomplished,
+    ).toBeTruthy();
     expect(bankAccountRepository.items[0].balance).toEqual(
       bankAccountBalance - amount,
     );
@@ -129,11 +131,13 @@ describe("[Use Case] Create debit expense transaction", () => {
       userId,
       ...debitExpenseTransaction.input,
       amount,
-      paid: false,
+      isAccomplished: false,
     });
 
     expect(isRight()).toBeTruthy();
-    expect(debitExpenseTransactionRepository.items[0].paid).toBeFalsy();
+    expect(
+      debitExpenseTransactionRepository.items[0].isAccomplished,
+    ).toBeFalsy();
     expect(bankAccountRepository.items[0].balance).toEqual(bankAccountBalance);
   });
 
@@ -263,7 +267,7 @@ describe("[Use Case] Create debit expense transaction", () => {
           expect(transaction.description).toEqual(
             originTransaction.description,
           );
-          expect(transaction.paid).toBeFalsy();
+          expect(transaction.isAccomplished).toBeFalsy();
           expect(transaction.recurrencePeriod).toBeNull();
           expect(transaction.recurrenceLimit).toBeNull();
           expect(transaction.recurrenceAmount).toBeNull();

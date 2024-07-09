@@ -74,7 +74,7 @@ export class CreateTransferenceTransactionUseCase extends UseCase<
       destinyBankAccountId,
       ...restInput,
     });
-    const { paid, amount, recurrencePeriod, recurrenceLimit } =
+    const { isAccomplished, amount, recurrencePeriod, recurrenceLimit } =
       transferenceTransaction;
 
     try {
@@ -84,7 +84,7 @@ export class CreateTransferenceTransactionUseCase extends UseCase<
         transferenceTransaction,
       );
 
-      if (paid) {
+      if (isAccomplished) {
         await Promise.all([
           this.deps.bankAccountRepository.updateUniqueByIdDecreasingBalance(
             originBankAccountId,

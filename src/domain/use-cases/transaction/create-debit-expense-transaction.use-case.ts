@@ -75,7 +75,7 @@ export class CreateDebitExpenseTransactionUseCase extends UseCase<
       categoryId,
       ...restInput,
     });
-    const { paid, amount, recurrencePeriod, recurrenceLimit } =
+    const { isAccomplished, amount, recurrencePeriod, recurrenceLimit } =
       debitExpenseTransaction;
 
     try {
@@ -85,7 +85,7 @@ export class CreateDebitExpenseTransactionUseCase extends UseCase<
         debitExpenseTransaction,
       );
 
-      if (paid) {
+      if (isAccomplished) {
         await this.deps.bankAccountRepository.updateUniqueByIdDecreasingBalance(
           bankAccountId,
           amount,

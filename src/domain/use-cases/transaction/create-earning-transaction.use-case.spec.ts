@@ -104,35 +104,35 @@ describe("[Use Case] Create earning transaction", () => {
     );
   });
 
-  it("should be able to accomplish transaction when has been marked if paid", async () => {
+  it("should be able to accomplish transaction when has been marked if received", async () => {
     const bankAccountBalance = bankAccountRepository.items[0].balance;
     const amount = 50;
     const { isRight } = await sut.execute<"success">({
       userId,
       ...earningTransaction.input,
       amount,
-      paid: true,
+      isAccomplished: true,
     });
 
     expect(isRight()).toBeTruthy();
-    expect(earningTransactionRepository.items[0].paid).toBeTruthy();
+    expect(earningTransactionRepository.items[0].isAccomplished).toBeTruthy();
     expect(bankAccountRepository.items[0].balance).toEqual(
       bankAccountBalance + amount,
     );
   });
 
-  it("should not be able to accomplish transaction when has been not marked if paid", async () => {
+  it("should not be able to accomplish transaction when has been not marked if received", async () => {
     const bankAccountBalance = bankAccountRepository.items[0].balance;
     const amount = 50;
     const { isRight } = await sut.execute<"success">({
       userId,
       ...earningTransaction.input,
       amount,
-      paid: false,
+      isAccomplished: false,
     });
 
     expect(isRight()).toBeTruthy();
-    expect(earningTransactionRepository.items[0].paid).toBeFalsy();
+    expect(earningTransactionRepository.items[0].isAccomplished).toBeFalsy();
     expect(bankAccountRepository.items[0].balance).toEqual(bankAccountBalance);
   });
 
@@ -262,7 +262,7 @@ describe("[Use Case] Create earning transaction", () => {
           expect(transaction.description).toEqual(
             originTransaction.description,
           );
-          expect(transaction.paid).toBeFalsy();
+          expect(transaction.isAccomplished).toBeFalsy();
           expect(transaction.recurrencePeriod).toBeNull();
           expect(transaction.recurrenceLimit).toBeNull();
           expect(transaction.recurrenceAmount).toBeNull();
