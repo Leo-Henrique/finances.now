@@ -2,20 +2,12 @@ import { Entity, definitionMethodName } from "@/core/entities/entity";
 import { CamelCase } from "type-fest";
 import { z } from "zod";
 import { EntityData } from "./entity-data";
+import { FieldDefinition } from "./field-definition";
 
 export type FieldName<PropName> =
   PropName extends `${typeof definitionMethodName}${infer FieldName}`
     ? CamelCase<FieldName>
     : never;
-
-export interface FieldDefinition<Input = unknown, Output = Input> {
-  schema: z.ZodType<Input>;
-  default?: Input;
-  transform?: (value: Input) => Output;
-  static?: boolean;
-  readonly?: boolean;
-  onDefinition?: () => void;
-}
 
 export type GetFieldDefinition<
   Method,
