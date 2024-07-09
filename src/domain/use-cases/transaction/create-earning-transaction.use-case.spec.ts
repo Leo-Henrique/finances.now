@@ -236,6 +236,7 @@ describe("[Use Case] Create earning transaction", () => {
       expect(earningTransactionRepository.items[0]).toEqual(
         result.earningTransaction,
       );
+      expect(earningTransactionRepository.items[0].recurrenceAmount).toEqual(1);
       expect(earningTransactionRepository.items).toHaveLength(
         countTransactionsAddedAtTime + 1,
       );
@@ -362,6 +363,9 @@ describe("[Use Case] Create earning transaction", () => {
 
       expect(earningTransactionRepository.items[0]).toEqual(
         result.earningTransaction,
+      );
+      expect(earningTransactionRepository.items[0].recurrenceAmount).toEqual(
+        recurrenceAmount,
       );
 
       const originTransaction = earningTransactionRepository.items[0];

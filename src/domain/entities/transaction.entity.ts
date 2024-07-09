@@ -58,6 +58,7 @@ export abstract class TransactionEntity
     return {
       schema: z.enum(["day", "week", "month", "year"]).nullable(),
       default: null,
+      readonly: true,
     };
   }
 
@@ -65,6 +66,7 @@ export abstract class TransactionEntity
     return {
       schema: z.number().int().positive().nullable(),
       default: null,
+      readonly: true,
       onDefinition: () => {
         const { recurrencePeriod, recurrenceAmount } =
           this.getData<TransactionEntity>();
@@ -79,6 +81,7 @@ export abstract class TransactionEntity
     return {
       schema: z.number().int().positive().nullable(),
       default: null,
+      readonly: true,
     };
   }
 

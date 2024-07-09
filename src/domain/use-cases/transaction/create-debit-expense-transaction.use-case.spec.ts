@@ -239,6 +239,9 @@ describe("[Use Case] Create debit expense transaction", () => {
       expect(debitExpenseTransactionRepository.items[0]).toEqual(
         result.debitExpenseTransaction,
       );
+      expect(
+        debitExpenseTransactionRepository.items[0].recurrenceAmount,
+      ).toEqual(1);
       expect(debitExpenseTransactionRepository.items).toHaveLength(
         countTransactionsAddedAtTime + 1,
       );
@@ -369,6 +372,9 @@ describe("[Use Case] Create debit expense transaction", () => {
       expect(debitExpenseTransactionRepository.items[0]).toEqual(
         result.debitExpenseTransaction,
       );
+      expect(
+        debitExpenseTransactionRepository.items[0].recurrenceAmount,
+      ).toEqual(recurrenceAmount);
 
       const originTransaction = debitExpenseTransactionRepository.items[0];
 

@@ -262,6 +262,9 @@ describe("[Use Case] Create transference transaction", () => {
       expect(transferenceTransactionRepository.items[0]).toEqual(
         result.transferenceTransaction,
       );
+      expect(
+        transferenceTransactionRepository.items[0].recurrenceAmount,
+      ).toEqual(1);
       expect(transferenceTransactionRepository.items).toHaveLength(
         countTransactionsAddedAtTime + 1,
       );
@@ -394,6 +397,9 @@ describe("[Use Case] Create transference transaction", () => {
       expect(transferenceTransactionRepository.items[0]).toEqual(
         result.transferenceTransaction,
       );
+      expect(
+        transferenceTransactionRepository.items[0].recurrenceAmount,
+      ).toEqual(recurrenceAmount);
 
       const originTransaction = transferenceTransactionRepository.items[0];
 
