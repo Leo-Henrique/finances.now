@@ -15,14 +15,14 @@ export function makeTransferenceTransaction({
   destinyBankAccountId,
   ...override
 }: MakeTransferenceTransactionInput) {
-  const input: TransferenceTransactionDataCreate = {
+  const input = {
     originBankAccountId,
     destinyBankAccountId,
     amount: faker.number.float({ min: 1, fractionDigits: 2 }),
     description: faker.lorem.sentences().substring(1, 255),
     transactedAt: faker.date.recent(),
     ...override,
-  };
+  } satisfies TransferenceTransactionDataCreate;
   const entity = TransferenceTransactionEntity.create(input);
 
   return { input, entity };

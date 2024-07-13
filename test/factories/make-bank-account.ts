@@ -11,14 +11,14 @@ type MakeBankAccountInput = SetRequired<
 >;
 
 export function makeBankAccount({ userId, ...override }: MakeBankAccountInput) {
-  const input: BankAccountDataCreate = {
+  const input = {
     userId,
     institution: faker.company.name(),
     description: faker.string.alphanumeric({ length: { min: 1, max: 255 } }),
     balance: faker.number.int(100),
     mainAccount: faker.datatype.boolean(),
     ...override,
-  };
+  } satisfies BankAccountDataCreate;
   const entity = BankAccountEntity.create(input);
 
   return { input, entity };

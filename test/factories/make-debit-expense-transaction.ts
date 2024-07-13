@@ -22,7 +22,7 @@ export function makeDebitExpenseTransaction({
     amount: faker.number.float({ min: 1, fractionDigits: 2 }),
     description: faker.lorem.sentences().substring(1, 255),
     ...override,
-  };
+  } satisfies DebitExpenseTransactionDataCreate;
   const entity = DebitExpenseTransactionEntity.create(input);
 
   return { input, entity };

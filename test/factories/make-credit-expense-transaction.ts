@@ -15,14 +15,14 @@ export function makeCreditExpenseTransaction({
   categoryId,
   ...override
 }: MakeCreditExpenseTransactionInput) {
-  const input: CreditExpenseTransactionDataCreate = {
+  const input = {
     creditCardId,
     categoryId,
     transactedAt: faker.date.recent(),
     amount: faker.number.float({ min: 1, fractionDigits: 2 }),
     description: faker.lorem.sentences().substring(1, 255),
     ...override,
-  };
+  } satisfies CreditExpenseTransactionDataCreate;
   const entity = CreditExpenseTransactionEntity.create(input);
 
   return { input, entity };

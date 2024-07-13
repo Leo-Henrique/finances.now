@@ -9,12 +9,12 @@ type MakeTransactionCategoryInput = Partial<TransactionCategoryDataCreate>;
 export function makeTransactionCategory({
   ...override
 }: MakeTransactionCategoryInput = {}) {
-  const input: TransactionCategoryDataCreate = {
+  const input = {
     userId: null,
     name: faker.lorem.word(),
     isInExpense: faker.datatype.boolean(),
     ...override,
-  };
+  } satisfies TransactionCategoryDataCreate;
   const entity = TransactionCategoryEntity.create(input);
 
   return { input, entity };

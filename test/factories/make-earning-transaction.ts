@@ -15,14 +15,14 @@ export function makeEarningTransaction({
   categoryId,
   ...override
 }: MakeEarningTransactionInput) {
-  const input: EarningTransactionDataCreate = {
+  const input = {
     bankAccountId,
     categoryId,
     transactedAt: faker.date.recent(),
     amount: faker.number.float({ min: 1, max: 1000, fractionDigits: 2 }),
     description: faker.lorem.sentences().substring(1, 255),
     ...override,
-  };
+  } satisfies EarningTransactionDataCreate;
   const entity = EarningTransactionEntity.create(input);
 
   return { input, entity };
