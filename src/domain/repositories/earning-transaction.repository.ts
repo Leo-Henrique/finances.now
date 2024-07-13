@@ -4,6 +4,7 @@ import {
   EarningTransactionDataUpdated,
   EarningTransactionEntity,
 } from "../entities/earning-transaction.entity";
+import { TransactionRecurrenceRepository } from "./transaction-recurrence.repository";
 
 type CoreOperationsEarningTransactionRepository = BaseRepository<
   EarningTransactionEntity,
@@ -11,18 +12,19 @@ type CoreOperationsEarningTransactionRepository = BaseRepository<
   EarningTransactionDataUpdated
 >;
 
+export type UpdateManyAccomplishedData = Pick<
+  EarningTransactionDataUpdated,
+  "categoryId" | "description"
+>;
+
+export type UpdateManyPendingData = Pick<
+  EarningTransactionDataUpdated,
+  "categoryId" | "description" | "amount"
+>;
+
 export interface EarningTransactionRepository
-  extends CoreOperationsEarningTransactionRepository {
-  createManyOfRecurrence(
-    originTransaction: EarningTransaction,
-    lastTransactedDate?: Date,
-  ): Promise<void>;
-  findUniqueMiddleOfCurrentRecurrence(
-    originId: string,
-  ): Promise<EarningTransaction | null>;
-  findUniqueEndOfCurrentRecurrence(
-    originId: string,
-  ): Promise<EarningTransaction | null>;
+  extends CoreOperationsEarningTransactionRepository,
+    TransactionRecurrenceRepository<EarningTransaction> {
   findUniqueFromUserById(
     userId: string,
     earningTransactionId: string,

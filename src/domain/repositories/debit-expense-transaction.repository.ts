@@ -4,6 +4,7 @@ import {
   DebitExpenseTransactionDataUpdated,
   DebitExpenseTransactionEntity,
 } from "../entities/debit-expense-transaction.entity";
+import { TransactionRecurrenceRepository } from "./transaction-recurrence.repository";
 
 type CoreOperationsDebitExpenseTransactionRepository = BaseRepository<
   DebitExpenseTransactionEntity,
@@ -12,17 +13,8 @@ type CoreOperationsDebitExpenseTransactionRepository = BaseRepository<
 >;
 
 export interface DebitExpenseTransactionRepository
-  extends CoreOperationsDebitExpenseTransactionRepository {
-  createManyOfRecurrence(
-    originTransaction: DebitExpenseTransaction,
-    lastTransactedDate?: Date,
-  ): Promise<void>;
-  findUniqueMiddleOfCurrentRecurrence(
-    originId: string,
-  ): Promise<DebitExpenseTransaction | null>;
-  findUniqueEndOfCurrentRecurrence(
-    originId: string,
-  ): Promise<DebitExpenseTransaction | null>;
+  extends CoreOperationsDebitExpenseTransactionRepository,
+    TransactionRecurrenceRepository<DebitExpenseTransaction> {
   findUniqueFromUserById(
     userId: string,
     debitExpenseTransactionId: string,

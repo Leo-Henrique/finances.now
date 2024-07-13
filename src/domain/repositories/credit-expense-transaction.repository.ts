@@ -4,6 +4,7 @@ import {
   CreditExpenseTransactionDataUpdated,
   CreditExpenseTransactionEntity,
 } from "../entities/credit-expense-transaction.entity";
+import { TransactionRecurrenceRepository } from "./transaction-recurrence.repository";
 
 type CoreOperationsCreditExpenseTransactionRepository = BaseRepository<
   CreditExpenseTransactionEntity,
@@ -12,15 +13,5 @@ type CoreOperationsCreditExpenseTransactionRepository = BaseRepository<
 >;
 
 export interface CreditExpenseTransactionRepository
-  extends CoreOperationsCreditExpenseTransactionRepository {
-  createManyOfRecurrence(
-    originTransaction: CreditExpenseTransaction,
-    lastTransactedDate?: Date,
-  ): Promise<void>;
-  findUniqueMiddleOfCurrentRecurrence(
-    originId: string,
-  ): Promise<CreditExpenseTransaction | null>;
-  findUniqueEndOfCurrentRecurrence(
-    originId: string,
-  ): Promise<CreditExpenseTransaction | null>;
-}
+  extends CoreOperationsCreditExpenseTransactionRepository,
+    TransactionRecurrenceRepository<CreditExpenseTransaction> {}

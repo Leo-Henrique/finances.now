@@ -6,14 +6,12 @@ import {
   TransferenceTransaction,
   TransferenceTransactionEntity,
 } from "@/domain/entities/transference-transaction.entity";
-import {
-  FailedToCreateTransactionError,
-  ResourceNotFoundError,
-} from "@/domain/errors";
+import { ResourceNotFoundError } from "@/domain/errors";
 import { BankAccountRepository } from "@/domain/repositories/bank-account.repository";
 import { TransferenceTransactionRepository } from "@/domain/repositories/transference-transaction.repository";
 import { JobSchedulingService } from "@/domain/services/job-scheduling.service";
 import { z } from "zod";
+import { CreateTransactionRecurrenceUseCase } from "./create-transaction-recurrence.use-case";
 
 const createTransferenceTransactionUseCaseSchema =
   TransferenceTransactionEntity.createSchema.extend({
@@ -25,7 +23,7 @@ type CreateTransferenceTransactionUseCaseInput = z.infer<
 >;
 
 export type CreateTransferenceTransactionUseCaseOutput = Either<
-  ResourceNotFoundError | FailedToCreateTransactionError,
+  ResourceNotFoundError,
   { transferenceTransaction: TransferenceTransaction }
 >;
 
@@ -34,6 +32,7 @@ type CreateTransferenceTransactionUseCaseDeps = {
   transferenceTransactionRepository: TransferenceTransactionRepository;
   jobSchedulingService: JobSchedulingService;
   unitOfWork: UnitOfWork;
+  createTransactionRecurrenceUseCase: CreateTransactionRecurrenceUseCase;
 };
 
 export class CreateTransferenceTransactionUseCase extends UseCase<
@@ -74,12 +73,10 @@ export class CreateTransferenceTransactionUseCase extends UseCase<
       destinyBankAccountId,
       ...restInput,
     });
-    const { isAccomplished, amount, recurrencePeriod, recurrenceLimit } =
+    const { isAccomplished, amount, recurrencePeriod } =
       transferenceTransaction;
 
-    try {
-      await this.deps.unitOfWork.begin();
-
+    await this.deps.unitOfWork.transaction(async () => {
       await this.deps.transferenceTransactionRepository.create(
         transferenceTransaction,
       );
@@ -98,63 +95,13 @@ export class CreateTransferenceTransactionUseCase extends UseCase<
       }
 
       if (recurrencePeriod) {
-        await this.deps.transferenceTransactionRepository.createManyOfRecurrence(
-          transferenceTransaction,
-        );
-
-        if (!recurrenceLimit) {
-          const middleTransactionOfCurrentRecurrence =
-            await this.deps.transferenceTransactionRepository.findUniqueMiddleOfCurrentRecurrence(
-              transferenceTransaction.id.value,
-            );
-
-          if (!middleTransactionOfCurrentRecurrence) {
-            throw new Error(
-              "Failed to get middle transaction of current recurrence.",
-            );
-          }
-
-          await this.deps.jobSchedulingService.createRepeatableByDynamicDate(
-            async () => {
-              const endTransactionOfCurrentRecurrence =
-                await this.deps.transferenceTransactionRepository.findUniqueEndOfCurrentRecurrence(
-                  transferenceTransaction.id.value,
-                );
-
-              if (!endTransactionOfCurrentRecurrence) return null;
-
-              await this.deps.transferenceTransactionRepository.createManyOfRecurrence(
-                transferenceTransaction,
-                endTransactionOfCurrentRecurrence.transactedAt,
-              );
-
-              const middleTransactionOfCurrentRecurrence =
-                await this.deps.transferenceTransactionRepository.findUniqueMiddleOfCurrentRecurrence(
-                  transferenceTransaction.id.value,
-                );
-
-              if (!middleTransactionOfCurrentRecurrence) return null;
-
-              return middleTransactionOfCurrentRecurrence.transactedAt;
-            },
-            middleTransactionOfCurrentRecurrence.transactedAt,
-            {
-              key: transferenceTransaction.id.value,
-            },
-          );
-        }
+        await this.deps.createTransactionRecurrenceUseCase.execute({
+          originTransaction: transferenceTransaction,
+          applyTransaction: false,
+        });
       }
+    });
 
-      await this.deps.unitOfWork.commit();
-
-      return right({ transferenceTransaction });
-    } catch (error) {
-      await this.deps.unitOfWork.rollback();
-      await this.deps.jobSchedulingService.deleteManyByKey(
-        transferenceTransaction.id.value,
-      );
-
-      return left(new FailedToCreateTransactionError(error));
-    }
+    return right({ transferenceTransaction });
   }
 }

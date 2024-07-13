@@ -6,15 +6,13 @@ import {
   DebitExpenseTransaction,
   DebitExpenseTransactionEntity,
 } from "@/domain/entities/debit-expense-transaction.entity";
-import {
-  FailedToCreateTransactionError,
-  ResourceNotFoundError,
-} from "@/domain/errors";
+import { ResourceNotFoundError } from "@/domain/errors";
 import { BankAccountRepository } from "@/domain/repositories/bank-account.repository";
 import { DebitExpenseTransactionRepository } from "@/domain/repositories/debit-expense-transaction.repository";
 import { TransactionCategoryRepository } from "@/domain/repositories/transaction-category.repository";
 import { JobSchedulingService } from "@/domain/services/job-scheduling.service";
 import { z } from "zod";
+import { CreateTransactionRecurrenceUseCase } from "./create-transaction-recurrence.use-case";
 
 const createDebitExpenseTransactionUseCaseSchema =
   DebitExpenseTransactionEntity.createSchema.extend({
@@ -26,7 +24,7 @@ type CreateDebitExpenseTransactionUseCaseInput = z.infer<
 >;
 
 export type CreateDebitExpenseTransactionUseCaseOutput = Either<
-  ResourceNotFoundError | FailedToCreateTransactionError,
+  ResourceNotFoundError,
   { debitExpenseTransaction: DebitExpenseTransaction }
 >;
 
@@ -36,6 +34,7 @@ type CreateDebitExpenseTransactionUseCaseDeps = {
   debitExpenseTransactionRepository: DebitExpenseTransactionRepository;
   jobSchedulingService: JobSchedulingService;
   unitOfWork: UnitOfWork;
+  createTransactionRecurrenceUseCase: CreateTransactionRecurrenceUseCase;
 };
 
 export class CreateDebitExpenseTransactionUseCase extends UseCase<
@@ -75,12 +74,10 @@ export class CreateDebitExpenseTransactionUseCase extends UseCase<
       categoryId,
       ...restInput,
     });
-    const { isAccomplished, amount, recurrencePeriod, recurrenceLimit } =
+    const { isAccomplished, amount, recurrencePeriod } =
       debitExpenseTransaction;
 
-    try {
-      await this.deps.unitOfWork.begin();
-
+    await this.deps.unitOfWork.transaction(async () => {
       await this.deps.debitExpenseTransactionRepository.create(
         debitExpenseTransaction,
       );
@@ -93,63 +90,13 @@ export class CreateDebitExpenseTransactionUseCase extends UseCase<
       }
 
       if (recurrencePeriod) {
-        await this.deps.debitExpenseTransactionRepository.createManyOfRecurrence(
-          debitExpenseTransaction,
-        );
-
-        if (!recurrenceLimit) {
-          const middleTransactionOfCurrentRecurrence =
-            await this.deps.debitExpenseTransactionRepository.findUniqueMiddleOfCurrentRecurrence(
-              debitExpenseTransaction.id.value,
-            );
-
-          if (!middleTransactionOfCurrentRecurrence) {
-            throw new Error(
-              "Failed to get middle transaction of current recurrence.",
-            );
-          }
-
-          await this.deps.jobSchedulingService.createRepeatableByDynamicDate(
-            async () => {
-              const endTransactionOfCurrentRecurrence =
-                await this.deps.debitExpenseTransactionRepository.findUniqueEndOfCurrentRecurrence(
-                  debitExpenseTransaction.id.value,
-                );
-
-              if (!endTransactionOfCurrentRecurrence) return null;
-
-              await this.deps.debitExpenseTransactionRepository.createManyOfRecurrence(
-                debitExpenseTransaction,
-                endTransactionOfCurrentRecurrence.transactedAt,
-              );
-
-              const middleTransactionOfCurrentRecurrence =
-                await this.deps.debitExpenseTransactionRepository.findUniqueMiddleOfCurrentRecurrence(
-                  debitExpenseTransaction.id.value,
-                );
-
-              if (!middleTransactionOfCurrentRecurrence) return null;
-
-              return middleTransactionOfCurrentRecurrence.transactedAt;
-            },
-            middleTransactionOfCurrentRecurrence.transactedAt,
-            {
-              key: debitExpenseTransaction.id.value,
-            },
-          );
-        }
+        await this.deps.createTransactionRecurrenceUseCase.execute({
+          originTransaction: debitExpenseTransaction,
+          applyTransaction: false,
+        });
       }
+    });
 
-      await this.deps.unitOfWork.commit();
-
-      return right({ debitExpenseTransaction });
-    } catch (error) {
-      await this.deps.unitOfWork.rollback();
-      await this.deps.jobSchedulingService.deleteManyByKey(
-        debitExpenseTransaction.id.value,
-      );
-
-      return left(new FailedToCreateTransactionError(error));
-    }
+    return right({ debitExpenseTransaction });
   }
 }

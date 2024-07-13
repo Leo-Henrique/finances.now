@@ -6,22 +6,20 @@ import { makeDebitExpenseTransaction } from "test/factories/make-debit-expense-t
 import { makeTransactionCategory } from "test/factories/make-transaction-category";
 import { FakeUnitOfWork } from "test/gateways/fake-unit-of-work";
 import { InMemoryBankAccountRepository } from "test/repositories/in-memory-bank-account.repository";
-import {
-  InMemoryDebitExpenseTransactionRepository,
-  debitExpenseTransactionsNumberPerTimeInRecurrence,
-} from "test/repositories/in-memory-debit-expense-transaction.repository";
+import { InMemoryDebitExpenseTransactionRepository } from "test/repositories/in-memory-debit-expense-transaction.repository";
 import { InMemoryTransactionCategoryRepository } from "test/repositories/in-memory-transaction-category.repository";
 import { InMemoryJobSchedulingService } from "test/services/in-memory-job-scheduling.service";
 import { dayInMilliseconds } from "test/utils/day-in-milliseconds";
-import { millisecondsRemainingForDate } from "test/utils/milliseconds-remaining-for-date";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { CreateDebitExpenseTransactionUseCase } from "./create-debit-expense-transaction.use-case";
+import { CreateTransactionRecurrenceUseCase } from "./create-transaction-recurrence.use-case";
 
 let bankAccountRepository: InMemoryBankAccountRepository;
 let transactionCategoryRepository: InMemoryTransactionCategoryRepository;
 let debitExpenseTransactionRepository: InMemoryDebitExpenseTransactionRepository;
 let jobSchedulingService: InMemoryJobSchedulingService;
 let unitOfWork: FakeUnitOfWork;
+let createTransactionRecurrenceUseCase: CreateTransactionRecurrenceUseCase;
 
 let sut: CreateDebitExpenseTransactionUseCase;
 
@@ -37,6 +35,12 @@ describe("[Use Case] Create debit expense transaction", () => {
       new InMemoryDebitExpenseTransactionRepository({ bankAccountRepository });
     jobSchedulingService = new InMemoryJobSchedulingService();
     unitOfWork = new FakeUnitOfWork();
+    createTransactionRecurrenceUseCase = new CreateTransactionRecurrenceUseCase(
+      {
+        transactionRecurrenceRepository: debitExpenseTransactionRepository,
+        jobSchedulingService,
+      },
+    );
 
     sut = new CreateDebitExpenseTransactionUseCase({
       bankAccountRepository,
@@ -44,6 +48,7 @@ describe("[Use Case] Create debit expense transaction", () => {
       debitExpenseTransactionRepository,
       jobSchedulingService,
       unitOfWork,
+      createTransactionRecurrenceUseCase,
     });
 
     userId = faker.string.uuid();
@@ -211,193 +216,6 @@ describe("[Use Case] Create debit expense transaction", () => {
 
     expect(isLeft()).toBeTruthy();
     expect(reason).toBeInstanceOf(ResourceNotFoundError);
-  });
-
-  describe("[Business Roles] recurring transaction", () => {
-    beforeEach(() => {
-      vi.useFakeTimers();
-      vi.setSystemTime(new Date());
-    });
-
-    afterEach(() => {
-      vi.useRealTimers();
-    });
-
-    it("should be able to create recurring transaction", async () => {
-      const amount = 50;
-
-      const { isRight, result } = await sut.execute<"success">({
-        userId,
-        ...debitExpenseTransaction.input,
-        amount,
-        recurrencePeriod: "day",
-      });
-      const countTransactionsAddedAtTime =
-        debitExpenseTransactionsNumberPerTimeInRecurrence;
-
-      expect(isRight()).toBeTruthy();
-      expect(debitExpenseTransactionRepository.items[0]).toEqual(
-        result.debitExpenseTransaction,
-      );
-      expect(
-        debitExpenseTransactionRepository.items[0].recurrenceAmount,
-      ).toEqual(1);
-      expect(debitExpenseTransactionRepository.items).toHaveLength(
-        countTransactionsAddedAtTime + 1,
-      );
-
-      const originTransaction = debitExpenseTransactionRepository.items[0];
-
-      const expectedOfRecurringTransactions = (
-        firstIndex: number,
-        lastIndex: number,
-      ) => {
-        for (
-          let transactionIndex = firstIndex;
-          transactionIndex <= lastIndex;
-          transactionIndex++
-        ) {
-          const transaction =
-            debitExpenseTransactionRepository.items[transactionIndex];
-
-          expect(transaction.id).not.toEqual(originTransaction.id);
-          expect(transaction.originId).toEqual(originTransaction.id);
-          expect(transaction.bankAccountId).toEqual(
-            originTransaction.bankAccountId,
-          );
-          expect(transaction.categoryId).toEqual(originTransaction.categoryId);
-          expect(transaction.amount).toEqual(originTransaction.amount);
-          expect(transaction.description).toEqual(
-            originTransaction.description,
-          );
-          expect(transaction.isAccomplished).toBeFalsy();
-          expect(transaction.recurrencePeriod).toBeNull();
-          expect(transaction.recurrenceLimit).toBeNull();
-          expect(transaction.recurrenceAmount).toBeNull();
-
-          const transactionDate = new Date(
-            originTransaction.transactedAt.getFullYear(),
-            originTransaction.transactedAt.getMonth(),
-            originTransaction.transactedAt.getDate() + transactionIndex,
-          );
-
-          expect(transaction.transactedAt).toEqual(transactionDate);
-        }
-      };
-
-      expectedOfRecurringTransactions(1, 10);
-
-      const getMiddleRecurringTransactedDate = () => {
-        const countTransactions =
-          debitExpenseTransactionRepository.items.length;
-        const factorIndex = countTransactionsAddedAtTime / 2 + 1;
-        const transaction =
-          debitExpenseTransactionRepository.items[
-            countTransactions - factorIndex
-          ];
-
-        return transaction.transactedAt;
-      };
-
-      for (
-        let transactionsPart = 1;
-        transactionsPart <= 5;
-        transactionsPart++
-      ) {
-        vi.advanceTimersByTime(
-          millisecondsRemainingForDate(getMiddleRecurringTransactedDate()),
-        );
-        await new Promise(process.nextTick);
-
-        const currentPart = countTransactionsAddedAtTime * transactionsPart;
-
-        expectedOfRecurringTransactions(currentPart, currentPart + 30);
-      }
-    });
-
-    it("should be able to create recurring transaction with a limit", async () => {
-      const recurrenceLimit = 10;
-      const amount = 50;
-
-      const { isRight, result } = await sut.execute<"success">({
-        userId,
-        ...debitExpenseTransaction.input,
-        amount,
-        recurrencePeriod: "month",
-        recurrenceLimit,
-      });
-
-      expect(isRight()).toBeTruthy();
-      expect(debitExpenseTransactionRepository.items[0]).toEqual(
-        result.debitExpenseTransaction,
-      );
-      expect(debitExpenseTransactionRepository.items).toHaveLength(
-        recurrenceLimit + 1,
-      );
-
-      const originTransaction = debitExpenseTransactionRepository.items[0];
-
-      for (
-        let transactionIndex = 1;
-        transactionIndex <= recurrenceLimit;
-        transactionIndex++
-      ) {
-        const transaction =
-          debitExpenseTransactionRepository.items[transactionIndex];
-
-        const transactionDate = new Date(
-          originTransaction.transactedAt.getFullYear(),
-          originTransaction.transactedAt.getMonth() + transactionIndex,
-          originTransaction.transactedAt.getDate(),
-        );
-
-        expect(transaction.transactedAt).toEqual(transactionDate);
-      }
-    });
-
-    it("should be able to create recurring transaction with a personalized period", async () => {
-      const recurrenceAmount = 3;
-      const recurrenceLimit = 10;
-      const amount = 50;
-
-      const { isRight, result } = await sut.execute<"success">({
-        userId,
-        ...debitExpenseTransaction.input,
-        amount,
-        recurrencePeriod: "day",
-        recurrenceLimit,
-        recurrenceAmount,
-      });
-
-      expect(debitExpenseTransactionRepository.items[0]).toEqual(
-        result.debitExpenseTransaction,
-      );
-      expect(
-        debitExpenseTransactionRepository.items[0].recurrenceAmount,
-      ).toEqual(recurrenceAmount);
-
-      const originTransaction = debitExpenseTransactionRepository.items[0];
-
-      for (
-        let transactionIndex = 1;
-        transactionIndex <= recurrenceLimit;
-        transactionIndex++
-      ) {
-        const transaction =
-          debitExpenseTransactionRepository.items[transactionIndex];
-
-        const transactionDate = new Date(
-          originTransaction.transactedAt.getFullYear(),
-          originTransaction.transactedAt.getMonth(),
-          originTransaction.transactedAt.getDate() +
-            recurrenceAmount * transactionIndex,
-        );
-
-        expect(transaction.transactedAt).toEqual(transactionDate);
-      }
-
-      expect(isRight()).toBeTruthy();
-    });
   });
 
   describe("[Business Roles] given invalid input", () => {

@@ -7,15 +7,13 @@ import {
   CreditExpenseTransactionEntity,
 } from "@/domain/entities/credit-expense-transaction.entity";
 
-import {
-  FailedToCreateTransactionError,
-  ResourceNotFoundError,
-} from "@/domain/errors";
+import { ResourceNotFoundError } from "@/domain/errors";
 import { CreditCardRepository } from "@/domain/repositories/credit-card.repository";
 import { CreditExpenseTransactionRepository } from "@/domain/repositories/credit-expense-transaction.repository";
 import { TransactionCategoryRepository } from "@/domain/repositories/transaction-category.repository";
 import { JobSchedulingService } from "@/domain/services/job-scheduling.service";
 import { z } from "zod";
+import { CreateTransactionRecurrenceUseCase } from "./create-transaction-recurrence.use-case";
 
 const createCreditExpenseTransactionUseCaseSchema =
   CreditExpenseTransactionEntity.createSchema
@@ -29,7 +27,7 @@ type CreateCreditExpenseTransactionUseCaseInput = z.infer<
 >;
 
 export type CreateCreditExpenseTransactionUseCaseOutput = Either<
-  ResourceNotFoundError | FailedToCreateTransactionError,
+  ResourceNotFoundError,
   { creditExpenseTransaction: CreditExpenseTransaction }
 >;
 
@@ -39,6 +37,7 @@ type CreateCreditExpenseTransactionUseCaseDeps = {
   creditExpenseTransactionRepository: CreditExpenseTransactionRepository;
   jobSchedulingService: JobSchedulingService;
   unitOfWork: UnitOfWork;
+  createTransactionRecurrenceUseCase: CreateTransactionRecurrenceUseCase;
 };
 
 export class CreateCreditExpenseTransactionUseCase extends UseCase<
@@ -79,73 +78,21 @@ export class CreateCreditExpenseTransactionUseCase extends UseCase<
       categoryId,
       ...restInput,
     });
-    const { recurrencePeriod, recurrenceLimit } = creditExpenseTransaction;
+    const { recurrencePeriod } = creditExpenseTransaction;
 
-    try {
-      await this.deps.unitOfWork.begin();
-
+    await this.deps.unitOfWork.transaction(async () => {
       await this.deps.creditExpenseTransactionRepository.create(
         creditExpenseTransaction,
       );
 
       if (recurrencePeriod) {
-        await this.deps.creditExpenseTransactionRepository.createManyOfRecurrence(
-          creditExpenseTransaction,
-        );
-
-        if (!recurrenceLimit) {
-          const middleTransactionOfCurrentRecurrence =
-            await this.deps.creditExpenseTransactionRepository.findUniqueMiddleOfCurrentRecurrence(
-              creditExpenseTransaction.id.value,
-            );
-
-          if (!middleTransactionOfCurrentRecurrence) {
-            throw new Error(
-              "Failed to get middle transaction of current recurrence.",
-            );
-          }
-
-          await this.deps.jobSchedulingService.createRepeatableByDynamicDate(
-            async () => {
-              const endTransactionOfCurrentRecurrence =
-                await this.deps.creditExpenseTransactionRepository.findUniqueEndOfCurrentRecurrence(
-                  creditExpenseTransaction.id.value,
-                );
-
-              if (!endTransactionOfCurrentRecurrence) return null;
-
-              await this.deps.creditExpenseTransactionRepository.createManyOfRecurrence(
-                creditExpenseTransaction,
-                endTransactionOfCurrentRecurrence.transactedAt,
-              );
-
-              const middleTransactionOfCurrentRecurrence =
-                await this.deps.creditExpenseTransactionRepository.findUniqueMiddleOfCurrentRecurrence(
-                  creditExpenseTransaction.id.value,
-                );
-
-              if (!middleTransactionOfCurrentRecurrence) return null;
-
-              return middleTransactionOfCurrentRecurrence.transactedAt;
-            },
-            middleTransactionOfCurrentRecurrence.transactedAt,
-            {
-              key: creditExpenseTransaction.id.value,
-            },
-          );
-        }
+        await this.deps.createTransactionRecurrenceUseCase.execute({
+          originTransaction: creditExpenseTransaction,
+          applyTransaction: false,
+        });
       }
+    });
 
-      await this.deps.unitOfWork.commit();
-
-      return right({ creditExpenseTransaction });
-    } catch (error) {
-      await this.deps.unitOfWork.rollback();
-      await this.deps.jobSchedulingService.deleteManyByKey(
-        creditExpenseTransaction.id.value,
-      );
-
-      return left(new FailedToCreateTransactionError(error));
-    }
+    return right({ creditExpenseTransaction });
   }
 }

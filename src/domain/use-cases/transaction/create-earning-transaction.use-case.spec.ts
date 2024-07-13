@@ -6,22 +6,20 @@ import { makeEarningTransaction } from "test/factories/make-earning-transaction"
 import { makeTransactionCategory } from "test/factories/make-transaction-category";
 import { FakeUnitOfWork } from "test/gateways/fake-unit-of-work";
 import { InMemoryBankAccountRepository } from "test/repositories/in-memory-bank-account.repository";
-import {
-  InMemoryEarningTransactionRepository,
-  earningTransactionsNumberPerTimeInRecurrence,
-} from "test/repositories/in-memory-earning-transaction.repository";
+import { InMemoryEarningTransactionRepository } from "test/repositories/in-memory-earning-transaction.repository";
 import { InMemoryTransactionCategoryRepository } from "test/repositories/in-memory-transaction-category.repository";
 import { InMemoryJobSchedulingService } from "test/services/in-memory-job-scheduling.service";
 import { dayInMilliseconds } from "test/utils/day-in-milliseconds";
-import { millisecondsRemainingForDate } from "test/utils/milliseconds-remaining-for-date";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { CreateEarningTransactionUseCase } from "./create-earning-transaction.use-case";
+import { CreateTransactionRecurrenceUseCase } from "./create-transaction-recurrence.use-case";
 
 let bankAccountRepository: InMemoryBankAccountRepository;
 let transactionCategoryRepository: InMemoryTransactionCategoryRepository;
 let earningTransactionRepository: InMemoryEarningTransactionRepository;
 let jobSchedulingService: InMemoryJobSchedulingService;
 let unitOfWork: FakeUnitOfWork;
+let createTransactionRecurrenceUseCase: CreateTransactionRecurrenceUseCase;
 
 let sut: CreateEarningTransactionUseCase;
 
@@ -38,11 +36,18 @@ describe("[Use Case] Create earning transaction", () => {
     });
     jobSchedulingService = new InMemoryJobSchedulingService();
     unitOfWork = new FakeUnitOfWork();
+    createTransactionRecurrenceUseCase = new CreateTransactionRecurrenceUseCase(
+      {
+        jobSchedulingService,
+        transactionRecurrenceRepository: earningTransactionRepository,
+      },
+    );
 
     sut = new CreateEarningTransactionUseCase({
       bankAccountRepository,
       transactionCategoryRepository,
       earningTransactionRepository,
+      createTransactionRecurrenceUseCase,
       jobSchedulingService,
       unitOfWork,
     });
@@ -208,188 +213,6 @@ describe("[Use Case] Create earning transaction", () => {
 
     expect(isLeft()).toBeTruthy();
     expect(reason).toBeInstanceOf(ResourceNotFoundError);
-  });
-
-  describe("[Business Roles] recurring transaction", () => {
-    beforeEach(() => {
-      vi.useFakeTimers();
-      vi.setSystemTime(new Date());
-    });
-
-    afterEach(() => {
-      vi.useRealTimers();
-    });
-
-    it("should be able to create recurring transaction", async () => {
-      const amount = 50;
-
-      const { isRight, result } = await sut.execute<"success">({
-        userId,
-        ...earningTransaction.input,
-        amount,
-        recurrencePeriod: "day",
-      });
-      const countTransactionsAddedAtTime =
-        earningTransactionsNumberPerTimeInRecurrence;
-
-      expect(isRight()).toBeTruthy();
-      expect(earningTransactionRepository.items[0]).toEqual(
-        result.earningTransaction,
-      );
-      expect(earningTransactionRepository.items[0].recurrenceAmount).toEqual(1);
-      expect(earningTransactionRepository.items).toHaveLength(
-        countTransactionsAddedAtTime + 1,
-      );
-
-      const originTransaction = earningTransactionRepository.items[0];
-
-      const expectedOfRecurringTransactions = (
-        firstIndex: number,
-        lastIndex: number,
-      ) => {
-        for (
-          let transactionIndex = firstIndex;
-          transactionIndex <= lastIndex;
-          transactionIndex++
-        ) {
-          const transaction =
-            earningTransactionRepository.items[transactionIndex];
-
-          expect(transaction.id).not.toEqual(originTransaction.id);
-          expect(transaction.originId).toEqual(originTransaction.id);
-          expect(transaction.bankAccountId).toEqual(
-            originTransaction.bankAccountId,
-          );
-          expect(transaction.categoryId).toEqual(originTransaction.categoryId);
-          expect(transaction.amount).toEqual(originTransaction.amount);
-          expect(transaction.description).toEqual(
-            originTransaction.description,
-          );
-          expect(transaction.isAccomplished).toBeFalsy();
-          expect(transaction.recurrencePeriod).toBeNull();
-          expect(transaction.recurrenceLimit).toBeNull();
-          expect(transaction.recurrenceAmount).toBeNull();
-
-          const transactionDate = new Date(
-            originTransaction.transactedAt.getFullYear(),
-            originTransaction.transactedAt.getMonth(),
-            originTransaction.transactedAt.getDate() + transactionIndex,
-          );
-
-          expect(transaction.transactedAt).toEqual(transactionDate);
-        }
-      };
-
-      expectedOfRecurringTransactions(1, 10);
-
-      const getMiddleRecurringTransactedDate = () => {
-        const countTransactions = earningTransactionRepository.items.length;
-        const factorIndex = countTransactionsAddedAtTime / 2 + 1;
-        const transaction =
-          earningTransactionRepository.items[countTransactions - factorIndex];
-
-        return transaction.transactedAt;
-      };
-
-      for (
-        let transactionsPart = 1;
-        transactionsPart <= 5;
-        transactionsPart++
-      ) {
-        vi.advanceTimersByTime(
-          millisecondsRemainingForDate(getMiddleRecurringTransactedDate()),
-        );
-        await new Promise(process.nextTick);
-
-        const currentPart = countTransactionsAddedAtTime * transactionsPart;
-
-        expectedOfRecurringTransactions(currentPart, currentPart + 30);
-      }
-    });
-
-    it("should be able to create recurring transaction with a limit", async () => {
-      const recurrenceLimit = 10;
-      const amount = 50;
-
-      const { isRight, result } = await sut.execute<"success">({
-        userId,
-        ...earningTransaction.input,
-        amount,
-        recurrencePeriod: "month",
-        recurrenceLimit,
-      });
-
-      expect(isRight()).toBeTruthy();
-      expect(earningTransactionRepository.items[0]).toEqual(
-        result.earningTransaction,
-      );
-      expect(earningTransactionRepository.items).toHaveLength(
-        recurrenceLimit + 1,
-      );
-
-      const originTransaction = earningTransactionRepository.items[0];
-
-      for (
-        let transactionIndex = 1;
-        transactionIndex <= recurrenceLimit;
-        transactionIndex++
-      ) {
-        const transaction =
-          earningTransactionRepository.items[transactionIndex];
-
-        const transactionDate = new Date(
-          originTransaction.transactedAt.getFullYear(),
-          originTransaction.transactedAt.getMonth() + transactionIndex,
-          originTransaction.transactedAt.getDate(),
-        );
-
-        expect(transaction.transactedAt).toEqual(transactionDate);
-      }
-    });
-
-    it("should be able to create recurring transaction with a personalized period", async () => {
-      const recurrenceAmount = 3;
-      const recurrenceLimit = 10;
-      const amount = 50;
-
-      const { isRight, result } = await sut.execute<"success">({
-        userId,
-        ...earningTransaction.input,
-        amount,
-        recurrencePeriod: "day",
-        recurrenceLimit,
-        recurrenceAmount,
-      });
-
-      expect(earningTransactionRepository.items[0]).toEqual(
-        result.earningTransaction,
-      );
-      expect(earningTransactionRepository.items[0].recurrenceAmount).toEqual(
-        recurrenceAmount,
-      );
-
-      const originTransaction = earningTransactionRepository.items[0];
-
-      for (
-        let transactionIndex = 1;
-        transactionIndex <= recurrenceLimit;
-        transactionIndex++
-      ) {
-        const transaction =
-          earningTransactionRepository.items[transactionIndex];
-
-        const transactionDate = new Date(
-          originTransaction.transactedAt.getFullYear(),
-          originTransaction.transactedAt.getMonth(),
-          originTransaction.transactedAt.getDate() +
-            recurrenceAmount * transactionIndex,
-        );
-
-        expect(transaction.transactedAt).toEqual(transactionDate);
-      }
-
-      expect(isRight()).toBeTruthy();
-    });
   });
 
   describe("[Business Roles] given invalid input", () => {

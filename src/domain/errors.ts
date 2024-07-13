@@ -58,15 +58,6 @@ export class NewPasswordSameAsCurrentError extends DomainError {
   }
 }
 
-export class FailedToCreateTransactionError extends DomainError {
-  public error = "FailedToCreateTransactionError";
-  public HTTPStatusCode = 500;
-
-  constructor(public debug: unknown) {
-    super("Falha ao criar uma nova transação.");
-  }
-}
-
 export class TransactionAlreadyAccomplishedError extends DomainError {
   public error = "TransactionAlreadyAccomplishedError";
   public HTTPStatusCode = 400;
