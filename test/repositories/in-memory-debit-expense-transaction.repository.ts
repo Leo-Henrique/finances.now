@@ -159,16 +159,13 @@ export class InMemoryDebitExpenseTransactionRepository
   }
 
   public async updateManyAccomplished(
-    debitExpenseTransaction: DebitExpenseTransaction,
+    originTransaction: DebitExpenseTransaction,
     data: UpdateManyAccomplishedDebitExpenseTransactionsData,
   ) {
-    const originTransactionId =
-      debitExpenseTransaction.originId?.value ??
-      debitExpenseTransaction.id?.value;
     const transactions = this.items.filter(item => {
       const matchIds =
-        item.id.value === originTransactionId ||
-        item.originId?.value === originTransactionId;
+        item.id.value === originTransaction.id.value ||
+        item.originId?.value === originTransaction.id.value;
 
       return matchIds && item.isAccomplished === true;
     });
@@ -188,16 +185,13 @@ export class InMemoryDebitExpenseTransactionRepository
   }
 
   public async updateManyPending(
-    debitExpenseTransaction: DebitExpenseTransaction,
+    originTransaction: DebitExpenseTransaction,
     data: UpdateManyPendingDebitExpenseTransactionsData,
   ) {
-    const originTransactionId =
-      debitExpenseTransaction.originId?.value ??
-      debitExpenseTransaction.id?.value;
     const transactions = this.items.filter(item => {
       const matchIds =
-        item.id.value === originTransactionId ||
-        item.originId?.value === originTransactionId;
+        item.id.value === originTransaction.id.value ||
+        item.originId?.value === originTransaction.id.value;
 
       return matchIds && item.isAccomplished === false;
     });

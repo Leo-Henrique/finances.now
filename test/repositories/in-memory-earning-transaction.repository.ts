@@ -156,15 +156,13 @@ export class InMemoryEarningTransactionRepository
   }
 
   public async updateManyAccomplished(
-    earningTransaction: EarningTransaction,
+    originTransaction: EarningTransaction,
     data: UpdateManyAccomplishedEarningTransactionsData,
   ) {
-    const originTransactionId =
-      earningTransaction.originId?.value ?? earningTransaction.id?.value;
     const transactions = this.items.filter(item => {
       const matchIds =
-        item.id.value === originTransactionId ||
-        item.originId?.value === originTransactionId;
+        item.id.value === originTransaction.id.value ||
+        item.originId?.value === originTransaction.id.value;
 
       return matchIds && item.isAccomplished === true;
     });
@@ -184,15 +182,13 @@ export class InMemoryEarningTransactionRepository
   }
 
   public async updateManyPending(
-    earningTransaction: EarningTransaction,
+    originTransaction: EarningTransaction,
     data: UpdateManyPendingEarningTransactionsData,
   ) {
-    const originTransactionId =
-      earningTransaction.originId?.value ?? earningTransaction.id?.value;
     const transactions = this.items.filter(item => {
       const matchIds =
-        item.id.value === originTransactionId ||
-        item.originId?.value === originTransactionId;
+        item.id.value === originTransaction.id.value ||
+        item.originId?.value === originTransaction.id.value;
 
       return matchIds && item.isAccomplished === false;
     });

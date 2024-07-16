@@ -4,7 +4,7 @@ import {
   CreditExpenseTransactionDataUpdated,
   CreditExpenseTransactionEntity,
 } from "../entities/credit-expense-transaction.entity";
-import { TransactionRecurrenceRepository } from "./transaction-recurrence.repository";
+import { TransactionRepository } from "./transaction.repository";
 
 type CoreOperationsCreditExpenseTransactionRepository = BaseRepository<
   CreditExpenseTransactionEntity,
@@ -22,19 +22,12 @@ export type UpdateManyPendingCreditExpenseTransactionsData = Pick<
   "categoryId" | "description" | "amount"
 >;
 
+type CreditExpenseTransactionRecurrenceRepository = TransactionRepository<
+  CreditExpenseTransaction,
+  UpdateManyAccomplishedCreditExpenseTransactionsData,
+  UpdateManyPendingCreditExpenseTransactionsData
+>;
+
 export interface CreditExpenseTransactionRepository
   extends CoreOperationsCreditExpenseTransactionRepository,
-    TransactionRecurrenceRepository<CreditExpenseTransaction> {
-  findUniqueFromUserById(
-    userId: string,
-    creditExpenseTransactionId: string,
-  ): Promise<CreditExpenseTransaction | null>;
-  updateManyAccomplished(
-    originTransaction: CreditExpenseTransaction,
-    data: UpdateManyAccomplishedCreditExpenseTransactionsData,
-  ): Promise<void>;
-  updateManyPending(
-    originTransaction: CreditExpenseTransaction,
-    data: UpdateManyPendingCreditExpenseTransactionsData,
-  ): Promise<void>;
-}
+    CreditExpenseTransactionRecurrenceRepository {}

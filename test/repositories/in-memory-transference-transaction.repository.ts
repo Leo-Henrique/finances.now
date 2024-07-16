@@ -165,16 +165,13 @@ export class InMemoryTransferenceTransactionRepository
   }
 
   public async updateManyAccomplished(
-    transferenceTransaction: TransferenceTransaction,
+    originTransaction: TransferenceTransaction,
     data: UpdateManyAccomplishedTransferenceTransactionsData,
   ) {
-    const originTransactionId =
-      transferenceTransaction.originId?.value ??
-      transferenceTransaction.id?.value;
     const transactions = this.items.filter(item => {
       const matchIds =
-        item.id.value === originTransactionId ||
-        item.originId?.value === originTransactionId;
+        item.id.value === originTransaction.id.value ||
+        item.originId?.value === originTransaction.id.value;
 
       return matchIds && item.isAccomplished === true;
     });
@@ -194,16 +191,13 @@ export class InMemoryTransferenceTransactionRepository
   }
 
   public async updateManyPending(
-    transferenceTransaction: TransferenceTransaction,
+    originTransaction: TransferenceTransaction,
     data: UpdateManyPendingTransferenceTransactionsData,
   ) {
-    const originTransactionId =
-      transferenceTransaction.originId?.value ??
-      transferenceTransaction.id?.value;
     const transactions = this.items.filter(item => {
       const matchIds =
-        item.id.value === originTransactionId ||
-        item.originId?.value === originTransactionId;
+        item.id.value === originTransaction.id.value ||
+        item.originId?.value === originTransaction.id.value;
 
       return matchIds && item.isAccomplished === false;
     });

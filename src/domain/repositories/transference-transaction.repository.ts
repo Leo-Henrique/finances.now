@@ -4,7 +4,7 @@ import {
   TransferenceTransactionDataUpdated,
   TransferenceTransactionEntity,
 } from "../entities/transference-transaction.entity";
-import { TransactionRecurrenceRepository } from "./transaction-recurrence.repository";
+import { TransactionRepository } from "./transaction.repository";
 
 type CoreOperationsTransferenceTransactionRepository = BaseRepository<
   TransferenceTransactionEntity,
@@ -22,19 +22,12 @@ export type UpdateManyPendingTransferenceTransactionsData = Pick<
   "description" | "amount"
 >;
 
+type TransferenceTransactionRecurrenceRepository = TransactionRepository<
+  TransferenceTransaction,
+  UpdateManyAccomplishedTransferenceTransactionsData,
+  UpdateManyPendingTransferenceTransactionsData
+>;
+
 export interface TransferenceTransactionRepository
   extends CoreOperationsTransferenceTransactionRepository,
-    TransactionRecurrenceRepository<TransferenceTransaction> {
-  findUniqueFromUserById(
-    userId: string,
-    transferenceTransactionId: string,
-  ): Promise<TransferenceTransaction | null>;
-  updateManyAccomplished(
-    originTransaction: TransferenceTransaction,
-    data: UpdateManyAccomplishedTransferenceTransactionsData,
-  ): Promise<void>;
-  updateManyPending(
-    originTransaction: TransferenceTransaction,
-    data: UpdateManyPendingTransferenceTransactionsData,
-  ): Promise<void>;
-}
+    TransferenceTransactionRecurrenceRepository {}

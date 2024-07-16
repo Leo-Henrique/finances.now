@@ -161,14 +161,14 @@ export class UpdateTransferenceTransactionUseCase extends UseCase<
 
       if (recurrence === "accomplished" || recurrence === "all") {
         await this.deps.transferenceTransactionRepository.updateManyAccomplished(
-          transferenceTransaction,
+          originTransaction!,
           updatedFields,
         );
       }
 
       if (recurrence === "pending" || recurrence === "all") {
         await this.deps.transferenceTransactionRepository.updateManyPending(
-          transferenceTransaction,
+          originTransaction!,
           updatedFields,
         );
 

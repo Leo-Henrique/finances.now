@@ -143,14 +143,14 @@ export class UpdateDebitExpenseTransactionUseCase extends UseCase<
 
       if (recurrence === "accomplished" || recurrence === "all") {
         await this.deps.debitExpenseTransactionRepository.updateManyAccomplished(
-          debitExpenseTransaction,
+          originTransaction!,
           updatedFields,
         );
       }
 
       if (recurrence === "pending" || recurrence === "all") {
         await this.deps.debitExpenseTransactionRepository.updateManyPending(
-          debitExpenseTransaction,
+          originTransaction!,
           updatedFields,
         );
 

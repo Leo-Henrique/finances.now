@@ -143,14 +143,14 @@ export class UpdateEarningTransactionUseCase extends UseCase<
 
       if (recurrence === "accomplished" || recurrence === "all") {
         await this.deps.earningTransactionRepository.updateManyAccomplished(
-          earningTransaction,
+          originTransaction!,
           updatedFields,
         );
       }
 
       if (recurrence === "pending" || recurrence === "all") {
         await this.deps.earningTransactionRepository.updateManyPending(
-          earningTransaction,
+          originTransaction!,
           updatedFields,
         );
 

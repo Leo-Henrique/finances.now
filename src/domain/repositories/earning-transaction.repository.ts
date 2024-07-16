@@ -4,7 +4,7 @@ import {
   EarningTransactionDataUpdated,
   EarningTransactionEntity,
 } from "../entities/earning-transaction.entity";
-import { TransactionRecurrenceRepository } from "./transaction-recurrence.repository";
+import { TransactionRepository } from "./transaction.repository";
 
 type CoreOperationsEarningTransactionRepository = BaseRepository<
   EarningTransactionEntity,
@@ -22,19 +22,12 @@ export type UpdateManyPendingEarningTransactionsData = Pick<
   "categoryId" | "description" | "amount"
 >;
 
+type EarningTransactionRecurrenceRepository = TransactionRepository<
+  EarningTransaction,
+  UpdateManyAccomplishedEarningTransactionsData,
+  UpdateManyPendingEarningTransactionsData
+>;
+
 export interface EarningTransactionRepository
   extends CoreOperationsEarningTransactionRepository,
-    TransactionRecurrenceRepository<EarningTransaction> {
-  findUniqueFromUserById(
-    userId: string,
-    earningTransactionId: string,
-  ): Promise<EarningTransaction | null>;
-  updateManyAccomplished(
-    originTransaction: EarningTransaction,
-    data: UpdateManyAccomplishedEarningTransactionsData,
-  ): Promise<void>;
-  updateManyPending(
-    originTransaction: EarningTransaction,
-    data: UpdateManyPendingEarningTransactionsData,
-  ): Promise<void>;
-}
+    EarningTransactionRecurrenceRepository {}

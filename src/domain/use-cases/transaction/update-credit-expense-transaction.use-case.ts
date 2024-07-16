@@ -139,14 +139,14 @@ export class UpdateCreditExpenseTransactionUseCase extends UseCase<
 
       if (recurrence === "accomplished" || recurrence === "all") {
         await this.deps.creditExpenseTransactionRepository.updateManyAccomplished(
-          creditExpenseTransaction,
+          originTransaction!,
           updatedFields,
         );
       }
 
       if (recurrence === "pending" || recurrence === "all") {
         await this.deps.creditExpenseTransactionRepository.updateManyPending(
-          creditExpenseTransaction,
+          originTransaction!,
           updatedFields,
         );
 

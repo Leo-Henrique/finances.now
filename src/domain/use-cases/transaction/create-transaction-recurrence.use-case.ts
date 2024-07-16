@@ -3,7 +3,7 @@ import { UnitOfWork } from "@/core/unit-of-work";
 import { UseCase } from "@/core/use-case";
 import { Transaction } from "@/domain/entities/transaction.entity";
 import { ResourceNotFoundError } from "@/domain/errors";
-import { TransactionRecurrenceRepository } from "@/domain/repositories/transaction-recurrence.repository";
+import { TransactionRepository } from "@/domain/repositories/transaction.repository";
 import { JobSchedulingService } from "@/domain/services/job-scheduling.service";
 
 type CreateTransactionRecurrenceUseCaseInput = {
@@ -18,7 +18,7 @@ export type CreateTransactionRecurrenceUseCaseOutput = Either<
 >;
 
 type CreateTransactionRecurrenceUseCaseDeps = {
-  transactionRecurrenceRepository: TransactionRecurrenceRepository<Transaction>;
+  transactionRecurrenceRepository: TransactionRepository;
   jobSchedulingService: JobSchedulingService;
   unitOfWork: UnitOfWork;
 };

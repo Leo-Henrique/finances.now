@@ -4,7 +4,7 @@ import {
   DebitExpenseTransactionDataUpdated,
   DebitExpenseTransactionEntity,
 } from "../entities/debit-expense-transaction.entity";
-import { TransactionRecurrenceRepository } from "./transaction-recurrence.repository";
+import { TransactionRepository } from "./transaction.repository";
 
 type CoreOperationsDebitExpenseTransactionRepository = BaseRepository<
   DebitExpenseTransactionEntity,
@@ -22,19 +22,12 @@ export type UpdateManyPendingDebitExpenseTransactionsData = Pick<
   "categoryId" | "description" | "amount"
 >;
 
+type DebitExpenseTransactionRecurrenceRepository = TransactionRepository<
+  DebitExpenseTransaction,
+  UpdateManyAccomplishedDebitExpenseTransactionsData,
+  UpdateManyPendingDebitExpenseTransactionsData
+>;
+
 export interface DebitExpenseTransactionRepository
   extends CoreOperationsDebitExpenseTransactionRepository,
-    TransactionRecurrenceRepository<DebitExpenseTransaction> {
-  findUniqueFromUserById(
-    userId: string,
-    debitExpenseTransactionId: string,
-  ): Promise<DebitExpenseTransaction | null>;
-  updateManyAccomplished(
-    originTransaction: DebitExpenseTransaction,
-    data: UpdateManyAccomplishedDebitExpenseTransactionsData,
-  ): Promise<void>;
-  updateManyPending(
-    originTransaction: DebitExpenseTransaction,
-    data: UpdateManyPendingDebitExpenseTransactionsData,
-  ): Promise<void>;
-}
+    DebitExpenseTransactionRecurrenceRepository {}
