@@ -37,6 +37,7 @@ describe("[Use Case] Create transference transaction", () => {
       {
         jobSchedulingService,
         transactionRecurrenceRepository: transferenceTransactionRepository,
+        unitOfWork,
       },
     );
 

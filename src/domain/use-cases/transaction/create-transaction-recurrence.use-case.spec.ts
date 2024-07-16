@@ -1,5 +1,6 @@
 import { faker } from "@faker-js/faker";
 import { makeEarningTransaction } from "test/factories/make-earning-transaction";
+import { FakeUnitOfWork } from "test/gateways/fake-unit-of-work";
 import { InMemoryBankAccountRepository } from "test/repositories/in-memory-bank-account.repository";
 import {
   IN_MEMORY_COUNT_BATCH_EARNING_TRANSACTIONS_IN_RECURRENCE,
@@ -13,6 +14,7 @@ import { CreateTransactionRecurrenceUseCase } from "./create-transaction-recurre
 let bankAccountRepository: InMemoryBankAccountRepository;
 let earningTransactionRepository: InMemoryEarningTransactionRepository;
 let jobSchedulingService: InMemoryJobSchedulingService;
+let unitOfWork: FakeUnitOfWork;
 
 let sut: CreateTransactionRecurrenceUseCase;
 
@@ -22,10 +24,12 @@ describe("[Use Case] Create transaction recurrence", () => {
       bankAccountRepository,
     });
     jobSchedulingService = new InMemoryJobSchedulingService();
+    unitOfWork = new FakeUnitOfWork();
 
     sut = new CreateTransactionRecurrenceUseCase({
       transactionRecurrenceRepository: earningTransactionRepository,
       jobSchedulingService,
+      unitOfWork,
     });
 
     vi.useFakeTimers();
@@ -45,6 +49,7 @@ describe("[Use Case] Create transaction recurrence", () => {
 
     const { isRight } = await sut.execute<"success">({
       originTransaction: originTransaction.entity,
+      applyTransaction: false,
     });
 
     expect(isRight()).toBeTruthy();
@@ -131,6 +136,7 @@ describe("[Use Case] Create transaction recurrence", () => {
 
     const { isRight } = await sut.execute<"success">({
       originTransaction: originTransaction.entity,
+      applyTransaction: false,
     });
 
     expect(isRight()).toBeTruthy();
@@ -167,6 +173,7 @@ describe("[Use Case] Create transaction recurrence", () => {
 
     const { isRight } = await sut.execute<"success">({
       originTransaction: originTransaction.entity,
+      applyTransaction: false,
     });
 
     expect(isRight()).toBeTruthy();

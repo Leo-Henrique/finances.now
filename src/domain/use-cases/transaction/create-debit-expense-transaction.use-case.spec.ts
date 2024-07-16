@@ -39,6 +39,7 @@ describe("[Use Case] Create debit expense transaction", () => {
       {
         transactionRecurrenceRepository: debitExpenseTransactionRepository,
         jobSchedulingService,
+        unitOfWork,
       },
     );
 

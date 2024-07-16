@@ -40,6 +40,7 @@ describe("[Use Case] Create earning transaction", () => {
       {
         jobSchedulingService,
         transactionRecurrenceRepository: earningTransactionRepository,
+        unitOfWork,
       },
     );
 

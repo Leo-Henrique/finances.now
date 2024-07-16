@@ -39,13 +39,14 @@ describe("[Use Case] Create credit expense transaction", () => {
     });
     transactionCategoryRepository = new InMemoryTransactionCategoryRepository();
     creditExpenseTransactionRepository =
-      new InMemoryCreditExpenseTransactionRepository();
+      new InMemoryCreditExpenseTransactionRepository({ creditCardRepository });
     jobSchedulingService = new InMemoryJobSchedulingService();
     unitOfWork = new FakeUnitOfWork();
     createTransactionRecurrenceUseCase = new CreateTransactionRecurrenceUseCase(
       {
         transactionRecurrenceRepository: creditExpenseTransactionRepository,
         jobSchedulingService,
+        unitOfWork,
       },
     );
 
