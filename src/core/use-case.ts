@@ -10,16 +10,20 @@ import {
 } from "./either";
 import { ValidationError } from "./errors/errors";
 
-type UseCaseInputSchema<Input> = z.ZodObject<{
-  [K in keyof Input]: z.ZodType<Input[K]>;
-}>;
-
-type UseCaseDependencies = object;
+type UseCaseInputSchema<Input> =
+  | z.ZodObject<{
+      [K in keyof Input]: z.ZodType<Input[K]>;
+    }>
+  | z.ZodEffects<
+      z.ZodObject<{
+        [K in keyof Input]: z.ZodType<Input[K]>;
+      }>
+    >;
 
 export abstract class UseCase<
   Input,
   Output extends Either<EitherReason, EitherResult>,
-  Dependencies extends UseCaseDependencies | undefined = undefined,
+  Dependencies extends object | undefined = undefined,
 > {
   private inputSchema: UseCaseInputSchema<Input> | undefined = undefined;
   protected deps!: Dependencies;
