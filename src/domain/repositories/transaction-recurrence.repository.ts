@@ -13,4 +13,7 @@ export interface TransactionRecurrenceRepository<
   findUniqueEndOfCurrentRecurrence(
     originId: string,
   ): Promise<TransactionRecurrence | null>;
+  findUniqueOriginTransactionById(
+    transactionId: string,
+  ): Promise<TransactionRecurrence | null>;
 }

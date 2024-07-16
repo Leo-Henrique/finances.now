@@ -48,6 +48,16 @@ export class UnauthorizedError extends DomainError {
   }
 }
 
+export class ForbiddenActionError extends DomainError {
+  public error = "ForbiddenActionError";
+  public HTTPStatusCode = 403;
+  public debug = null;
+
+  constructor() {
+    super("Ação negada.");
+  }
+}
+
 export class NewPasswordSameAsCurrentError extends DomainError {
   public error = "NewPasswordSameAsCurrentError";
   public HTTPStatusCode = 400;

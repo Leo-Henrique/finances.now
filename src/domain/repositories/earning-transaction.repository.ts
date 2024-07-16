@@ -12,12 +12,12 @@ type CoreOperationsEarningTransactionRepository = BaseRepository<
   EarningTransactionDataUpdated
 >;
 
-export type UpdateManyAccomplishedData = Pick<
+export type UpdateManyAccomplishedEarningTransactionsData = Pick<
   EarningTransactionDataUpdated,
   "categoryId" | "description"
 >;
 
-export type UpdateManyPendingData = Pick<
+export type UpdateManyPendingEarningTransactionsData = Pick<
   EarningTransactionDataUpdated,
   "categoryId" | "description" | "amount"
 >;
@@ -29,4 +29,12 @@ export interface EarningTransactionRepository
     userId: string,
     earningTransactionId: string,
   ): Promise<EarningTransaction | null>;
+  updateManyAccomplished(
+    originTransaction: EarningTransaction,
+    data: UpdateManyAccomplishedEarningTransactionsData,
+  ): Promise<void>;
+  updateManyPending(
+    originTransaction: EarningTransaction,
+    data: UpdateManyPendingEarningTransactionsData,
+  ): Promise<void>;
 }

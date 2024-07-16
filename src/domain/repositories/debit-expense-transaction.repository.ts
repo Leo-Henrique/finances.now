@@ -12,6 +12,16 @@ type CoreOperationsDebitExpenseTransactionRepository = BaseRepository<
   DebitExpenseTransactionDataUpdated
 >;
 
+export type UpdateManyAccomplishedDebitExpenseTransactionsData = Pick<
+  DebitExpenseTransactionDataUpdated,
+  "categoryId" | "description"
+>;
+
+export type UpdateManyPendingDebitExpenseTransactionsData = Pick<
+  DebitExpenseTransactionDataUpdated,
+  "categoryId" | "description" | "amount"
+>;
+
 export interface DebitExpenseTransactionRepository
   extends CoreOperationsDebitExpenseTransactionRepository,
     TransactionRecurrenceRepository<DebitExpenseTransaction> {
@@ -19,4 +29,12 @@ export interface DebitExpenseTransactionRepository
     userId: string,
     debitExpenseTransactionId: string,
   ): Promise<DebitExpenseTransaction | null>;
+  updateManyAccomplished(
+    originTransaction: DebitExpenseTransaction,
+    data: UpdateManyAccomplishedDebitExpenseTransactionsData,
+  ): Promise<void>;
+  updateManyPending(
+    originTransaction: DebitExpenseTransaction,
+    data: UpdateManyPendingDebitExpenseTransactionsData,
+  ): Promise<void>;
 }

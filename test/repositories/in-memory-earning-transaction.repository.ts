@@ -5,7 +5,11 @@ import {
   EarningTransactionEntity,
 } from "@/domain/entities/earning-transaction.entity";
 import { BankAccountRepository } from "@/domain/repositories/bank-account.repository";
-import { EarningTransactionRepository } from "@/domain/repositories/earning-transaction.repository";
+import {
+  EarningTransactionRepository,
+  UpdateManyAccomplishedEarningTransactionsData,
+  UpdateManyPendingEarningTransactionsData,
+} from "@/domain/repositories/earning-transaction.repository";
 
 export const earningTransactionsNumberPerTimeInRecurrence = 500;
 
@@ -92,10 +96,13 @@ export class InMemoryEarningTransactionRepository
 
     if (!recurringTransactions.length) return null;
 
-    return recurringTransactions[
+    let index =
       recurringTransactions.length -
-        (earningTransactionsNumberPerTimeInRecurrence / 2 + 1)
-    ];
+      (earningTransactionsNumberPerTimeInRecurrence / 2 + 1);
+
+    if (index < 1) index = recurringTransactions.length / 2 + 1;
+
+    return recurringTransactions[Math.floor(index)];
   }
 
   public async findUniqueEndOfCurrentRecurrence(originId: string) {
@@ -127,5 +134,79 @@ export class InMemoryEarningTransactionRepository
     if (!bankAccount) return null;
 
     return earningTransaction;
+  }
+
+  public async findUniqueOriginTransactionById(transactionId: string) {
+    const earningTransaction = this.items.find(item => {
+      return item.id.value === transactionId;
+    });
+
+    if (!earningTransaction) return null;
+
+    const originTransaction = this.items.find(item => {
+      return item.id.value === earningTransaction.originId?.value;
+    });
+
+    if (originTransaction) return originTransaction;
+
+    if (earningTransaction.recurrencePeriod) return earningTransaction;
+
+    return null;
+  }
+
+  public async updateManyAccomplished(
+    earningTransaction: EarningTransaction,
+    data: UpdateManyAccomplishedEarningTransactionsData,
+  ) {
+    const originTransactionId =
+      earningTransaction.originId?.value ?? earningTransaction.id?.value;
+    const transactions = this.items.filter(item => {
+      const matchIds =
+        item.id.value === originTransactionId ||
+        item.originId?.value === originTransactionId;
+
+      return matchIds && item.isAccomplished === true;
+    });
+
+    for (const transaction of transactions) {
+      const transactionIndex = this.items.findIndex(
+        item => item.id.value === transaction.id.value,
+      );
+
+      if (transactionIndex < 0) continue;
+
+      for (const fieldName in data) {
+        // @ts-expect-error: current field inference is unknown
+        this.items[transactionIndex][fieldName] = data[fieldName];
+      }
+    }
+  }
+
+  public async updateManyPending(
+    earningTransaction: EarningTransaction,
+    data: UpdateManyPendingEarningTransactionsData,
+  ) {
+    const originTransactionId =
+      earningTransaction.originId?.value ?? earningTransaction.id?.value;
+    const transactions = this.items.filter(item => {
+      const matchIds =
+        item.id.value === originTransactionId ||
+        item.originId?.value === originTransactionId;
+
+      return matchIds && item.isAccomplished === false;
+    });
+
+    for (const transaction of transactions) {
+      const transactionIndex = this.items.findIndex(
+        item => item.id.value === transaction.id.value,
+      );
+
+      if (transactionIndex < 0) continue;
+
+      for (const fieldName in data) {
+        // @ts-expect-error: current field inference is unknown
+        this.items[transactionIndex][fieldName] = data[fieldName];
+      }
+    }
   }
 }

@@ -4,9 +4,18 @@ import {
   CreditExpenseTransactionDataUpdated,
   CreditExpenseTransactionEntity,
 } from "@/domain/entities/credit-expense-transaction.entity";
-import { CreditExpenseTransactionRepository } from "@/domain/repositories/credit-expense-transaction.repository";
+import { CreditCardRepository } from "@/domain/repositories/credit-card.repository";
+import {
+  CreditExpenseTransactionRepository,
+  UpdateManyAccomplishedCreditExpenseTransactionsData,
+  UpdateManyPendingCreditExpenseTransactionsData,
+} from "@/domain/repositories/credit-expense-transaction.repository";
 
 export const creditExpenseTransactionsNumberPerTimeInRecurrence = 500;
+
+type InMemoryCreditExpenseTransactionRepositoryDeps = {
+  creditCardRepository: CreditCardRepository;
+};
 
 export class InMemoryCreditExpenseTransactionRepository
   extends InMemoryBaseRepository<
@@ -16,6 +25,12 @@ export class InMemoryCreditExpenseTransactionRepository
   >
   implements CreditExpenseTransactionRepository
 {
+  public constructor(
+    private deps: InMemoryCreditExpenseTransactionRepositoryDeps,
+  ) {
+    super();
+  }
+
   public async createManyOfRecurrence(
     originTransaction: CreditExpenseTransaction,
     lastTransactedDate?: Date,
@@ -83,10 +98,13 @@ export class InMemoryCreditExpenseTransactionRepository
 
     if (!recurringTransactions.length) return null;
 
-    return recurringTransactions[
+    let index =
       recurringTransactions.length -
-        (creditExpenseTransactionsNumberPerTimeInRecurrence / 2 + 1)
-    ];
+      (creditExpenseTransactionsNumberPerTimeInRecurrence / 2 + 1);
+
+    if (index < 1) index = recurringTransactions.length / 2 + 1;
+
+    return recurringTransactions[Math.floor(index)];
   }
 
   public async findUniqueEndOfCurrentRecurrence(originId: string) {
@@ -97,5 +115,103 @@ export class InMemoryCreditExpenseTransactionRepository
     if (!recurringTransactions.length) return null;
 
     return recurringTransactions[recurringTransactions.length - 1];
+  }
+
+  public async findUniqueFromUserById(
+    userId: string,
+    creditExpenseTransactionId: string,
+  ) {
+    const creditExpenseTransaction = this.items.find(item => {
+      return item.id.value === creditExpenseTransactionId;
+    });
+
+    if (!creditExpenseTransaction) return null;
+
+    const creditCard =
+      await this.deps.creditCardRepository.findUniqueFromUserById(
+        userId,
+        creditExpenseTransaction.creditCardId.value,
+      );
+
+    if (!creditCard) return null;
+
+    return creditExpenseTransaction;
+  }
+
+  public async findUniqueOriginTransactionById(transactionId: string) {
+    const creditExpenseTransaction = this.items.find(item => {
+      return item.id.value === transactionId;
+    });
+
+    if (!creditExpenseTransaction) return null;
+
+    const originTransaction = this.items.find(item => {
+      return item.id.value === creditExpenseTransaction.originId?.value;
+    });
+
+    if (originTransaction) return originTransaction;
+
+    if (creditExpenseTransaction.recurrencePeriod)
+      return creditExpenseTransaction;
+
+    return null;
+  }
+
+  public async updateManyAccomplished(
+    creditExpenseTransaction: CreditExpenseTransaction,
+    data: UpdateManyAccomplishedCreditExpenseTransactionsData,
+  ) {
+    const originTransactionId =
+      creditExpenseTransaction.originId?.value ??
+      creditExpenseTransaction.id?.value;
+    const transactions = this.items.filter(item => {
+      const matchIds =
+        item.id.value === originTransactionId ||
+        item.originId?.value === originTransactionId;
+
+      return matchIds && item.isAccomplished === true;
+    });
+
+    for (const transaction of transactions) {
+      const transactionIndex = this.items.findIndex(
+        item => item.id.value === transaction.id.value,
+      );
+
+      if (transactionIndex < 0) continue;
+
+      for (const fieldName in data) {
+        // @ts-expect-error: current field inference is unknown
+        this.items[transactionIndex][fieldName] = data[fieldName];
+      }
+    }
+  }
+
+  public async updateManyPending(
+    creditExpenseTransaction: CreditExpenseTransaction,
+    data: UpdateManyPendingCreditExpenseTransactionsData,
+  ) {
+    const originTransactionId =
+      creditExpenseTransaction.originId?.value ??
+      creditExpenseTransaction.id?.value;
+    const transactions = this.items.filter(item => {
+      const matchIds =
+        item.id.value === originTransactionId ||
+        item.originId?.value === originTransactionId;
+
+      return matchIds && item.isAccomplished === false;
+    });
+
+    for (const transaction of transactions) {
+      const transactionIndex = this.items.findIndex(
+        item => item.id.value === transaction.id.value,
+      );
+
+      if (transactionIndex < 0) continue;
+
+      for (const fieldName in data) {
+        // @ts-expect-error: current field inference is unknown
+        this.items[transactionIndex][fieldName] = data[fieldName];
+      }
+    }
   }
 }

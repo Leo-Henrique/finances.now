@@ -12,12 +12,12 @@ type CoreOperationsTransferenceTransactionRepository = BaseRepository<
   TransferenceTransactionDataUpdated
 >;
 
-export type UpdateManyAccomplishedData = Pick<
+export type UpdateManyAccomplishedTransferenceTransactionsData = Pick<
   TransferenceTransactionDataUpdated,
   "description"
 >;
 
-export type UpdateManyPendingData = Pick<
+export type UpdateManyPendingTransferenceTransactionsData = Pick<
   TransferenceTransactionDataUpdated,
   "description" | "amount"
 >;
@@ -29,4 +29,12 @@ export interface TransferenceTransactionRepository
     userId: string,
     transferenceTransactionId: string,
   ): Promise<TransferenceTransaction | null>;
+  updateManyAccomplished(
+    originTransaction: TransferenceTransaction,
+    data: UpdateManyAccomplishedTransferenceTransactionsData,
+  ): Promise<void>;
+  updateManyPending(
+    originTransaction: TransferenceTransaction,
+    data: UpdateManyPendingTransferenceTransactionsData,
+  ): Promise<void>;
 }

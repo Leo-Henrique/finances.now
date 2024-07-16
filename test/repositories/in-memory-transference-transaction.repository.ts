@@ -5,7 +5,11 @@ import {
   TransferenceTransactionEntity,
 } from "@/domain/entities/transference-transaction.entity";
 import { BankAccountRepository } from "@/domain/repositories/bank-account.repository";
-import { TransferenceTransactionRepository } from "@/domain/repositories/transference-transaction.repository";
+import {
+  TransferenceTransactionRepository,
+  UpdateManyAccomplishedTransferenceTransactionsData,
+  UpdateManyPendingTransferenceTransactionsData,
+} from "@/domain/repositories/transference-transaction.repository";
 
 export const transferenceTransactionsNumberPerTimeInRecurrence = 500;
 
@@ -94,10 +98,13 @@ export class InMemoryTransferenceTransactionRepository
 
     if (!recurringTransactions.length) return null;
 
-    return recurringTransactions[
+    let index =
       recurringTransactions.length -
-        (transferenceTransactionsNumberPerTimeInRecurrence / 2 + 1)
-    ];
+      (transferenceTransactionsNumberPerTimeInRecurrence / 2 + 1);
+
+    if (index < 1) index = recurringTransactions.length / 2 + 1;
+
+    return recurringTransactions[Math.floor(index)];
   }
 
   public async findUniqueEndOfCurrentRecurrence(originId: string) {
@@ -112,22 +119,105 @@ export class InMemoryTransferenceTransactionRepository
 
   public async findUniqueFromUserById(
     userId: string,
-    debitExpenseTransactionId: string,
+    transferenceTransactionId: string,
   ) {
-    const debitExpenseTransaction = this.items.find(item => {
-      return item.id.value === debitExpenseTransactionId;
+    const transferenceTransaction = this.items.find(item => {
+      return item.id.value === transferenceTransactionId;
     });
 
-    if (!debitExpenseTransaction) return null;
+    if (!transferenceTransaction) return null;
 
-    const bankAccount =
+    const originBankAccount =
       await this.deps.bankAccountRepository.findUniqueFromUserById(
         userId,
-        debitExpenseTransaction.originBankAccountId.value,
+        transferenceTransaction.originBankAccountId.value,
       );
 
-    if (!bankAccount) return null;
+    const destinyBankAccount =
+      await this.deps.bankAccountRepository.findUniqueFromUserById(
+        userId,
+        transferenceTransaction.destinyBankAccountId.value,
+      );
 
-    return debitExpenseTransaction;
+    if (!originBankAccount || !destinyBankAccount) return null;
+
+    return transferenceTransaction;
+  }
+
+  public async findUniqueOriginTransactionById(transactionId: string) {
+    const transferenceTransaction = this.items.find(item => {
+      return item.id.value === transactionId;
+    });
+
+    if (!transferenceTransaction) return null;
+
+    const originTransaction = this.items.find(item => {
+      return item.id.value === transferenceTransaction.originId?.value;
+    });
+
+    if (originTransaction) return originTransaction;
+
+    if (transferenceTransaction.recurrencePeriod)
+      return transferenceTransaction;
+
+    return null;
+  }
+
+  public async updateManyAccomplished(
+    transferenceTransaction: TransferenceTransaction,
+    data: UpdateManyAccomplishedTransferenceTransactionsData,
+  ) {
+    const originTransactionId =
+      transferenceTransaction.originId?.value ??
+      transferenceTransaction.id?.value;
+    const transactions = this.items.filter(item => {
+      const matchIds =
+        item.id.value === originTransactionId ||
+        item.originId?.value === originTransactionId;
+
+      return matchIds && item.isAccomplished === true;
+    });
+
+    for (const transaction of transactions) {
+      const transactionIndex = this.items.findIndex(
+        item => item.id.value === transaction.id.value,
+      );
+
+      if (transactionIndex < 0) continue;
+
+      for (const fieldName in data) {
+        // @ts-expect-error: current field inference is unknown
+        this.items[transactionIndex][fieldName] = data[fieldName];
+      }
+    }
+  }
+
+  public async updateManyPending(
+    transferenceTransaction: TransferenceTransaction,
+    data: UpdateManyPendingTransferenceTransactionsData,
+  ) {
+    const originTransactionId =
+      transferenceTransaction.originId?.value ??
+      transferenceTransaction.id?.value;
+    const transactions = this.items.filter(item => {
+      const matchIds =
+        item.id.value === originTransactionId ||
+        item.originId?.value === originTransactionId;
+
+      return matchIds && item.isAccomplished === false;
+    });
+
+    for (const transaction of transactions) {
+      const transactionIndex = this.items.findIndex(
+        item => item.id.value === transaction.id.value,
+      );
+
+      if (transactionIndex < 0) continue;
+
+      for (const fieldName in data) {
+        // @ts-expect-error: current field inference is unknown
+        this.items[transactionIndex][fieldName] = data[fieldName];
+      }
+    }
   }
 }

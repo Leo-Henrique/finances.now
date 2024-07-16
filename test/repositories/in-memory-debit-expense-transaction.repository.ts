@@ -5,7 +5,11 @@ import {
   DebitExpenseTransactionEntity,
 } from "@/domain/entities/debit-expense-transaction.entity";
 import { BankAccountRepository } from "@/domain/repositories/bank-account.repository";
-import { DebitExpenseTransactionRepository } from "@/domain/repositories/debit-expense-transaction.repository";
+import {
+  DebitExpenseTransactionRepository,
+  UpdateManyAccomplishedDebitExpenseTransactionsData,
+  UpdateManyPendingDebitExpenseTransactionsData,
+} from "@/domain/repositories/debit-expense-transaction.repository";
 
 export const debitExpenseTransactionsNumberPerTimeInRecurrence = 500;
 
@@ -94,10 +98,13 @@ export class InMemoryDebitExpenseTransactionRepository
 
     if (!recurringTransactions.length) return null;
 
-    return recurringTransactions[
+    let index =
       recurringTransactions.length -
-        (debitExpenseTransactionsNumberPerTimeInRecurrence / 2 + 1)
-    ];
+      (debitExpenseTransactionsNumberPerTimeInRecurrence / 2 + 1);
+
+    if (index < 1) index = recurringTransactions.length / 2 + 1;
+
+    return recurringTransactions[Math.floor(index)];
   }
 
   public async findUniqueEndOfCurrentRecurrence(originId: string) {
@@ -129,5 +136,82 @@ export class InMemoryDebitExpenseTransactionRepository
     if (!bankAccount) return null;
 
     return debitExpenseTransaction;
+  }
+
+  public async findUniqueOriginTransactionById(transactionId: string) {
+    const debitExpenseTransaction = this.items.find(item => {
+      return item.id.value === transactionId;
+    });
+
+    if (!debitExpenseTransaction) return null;
+
+    const originTransaction = this.items.find(item => {
+      return item.id.value === debitExpenseTransaction.originId?.value;
+    });
+
+    if (originTransaction) return originTransaction;
+
+    if (debitExpenseTransaction.recurrencePeriod)
+      return debitExpenseTransaction;
+
+    return null;
+  }
+
+  public async updateManyAccomplished(
+    debitExpenseTransaction: DebitExpenseTransaction,
+    data: UpdateManyAccomplishedDebitExpenseTransactionsData,
+  ) {
+    const originTransactionId =
+      debitExpenseTransaction.originId?.value ??
+      debitExpenseTransaction.id?.value;
+    const transactions = this.items.filter(item => {
+      const matchIds =
+        item.id.value === originTransactionId ||
+        item.originId?.value === originTransactionId;
+
+      return matchIds && item.isAccomplished === true;
+    });
+
+    for (const transaction of transactions) {
+      const transactionIndex = this.items.findIndex(
+        item => item.id.value === transaction.id.value,
+      );
+
+      if (transactionIndex < 0) continue;
+
+      for (const fieldName in data) {
+        // @ts-expect-error: current field inference is unknown
+        this.items[transactionIndex][fieldName] = data[fieldName];
+      }
+    }
+  }
+
+  public async updateManyPending(
+    debitExpenseTransaction: DebitExpenseTransaction,
+    data: UpdateManyPendingDebitExpenseTransactionsData,
+  ) {
+    const originTransactionId =
+      debitExpenseTransaction.originId?.value ??
+      debitExpenseTransaction.id?.value;
+    const transactions = this.items.filter(item => {
+      const matchIds =
+        item.id.value === originTransactionId ||
+        item.originId?.value === originTransactionId;
+
+      return matchIds && item.isAccomplished === false;
+    });
+
+    for (const transaction of transactions) {
+      const transactionIndex = this.items.findIndex(
+        item => item.id.value === transaction.id.value,
+      );
+
+      if (transactionIndex < 0) continue;
+
+      for (const fieldName in data) {
+        // @ts-expect-error: current field inference is unknown
+        this.items[transactionIndex][fieldName] = data[fieldName];
+      }
+    }
   }
 }
