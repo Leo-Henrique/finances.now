@@ -46,7 +46,7 @@ export type UpdateCreditExpenseTransactionUseCaseInput = z.infer<
 >;
 
 type UpdateCreditExpenseTransactionUseCaseOutput = Either<
-  ValidationError | ResourceNotFoundError,
+  ValidationError | ResourceNotFoundError | ForbiddenActionError,
   {
     creditExpenseTransaction: CreditExpenseTransaction;
   }
