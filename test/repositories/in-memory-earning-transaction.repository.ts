@@ -206,4 +206,68 @@ export class InMemoryEarningTransactionRepository
       }
     }
   }
+
+  public async delete(earningTransaction: EarningTransaction) {
+    const transaction = this.items.findIndex(
+      item => item.id.value === earningTransaction.id.value,
+    );
+
+    if (transaction < 0) return;
+
+    this.items.splice(transaction, 1);
+
+    await this.deps.bankAccountRepository.updateUniqueByIdDecreasingBalance(
+      earningTransaction.bankAccountId.value,
+      earningTransaction.amount,
+    );
+  }
+
+  public async deleteManyAccomplished(originTransaction: EarningTransaction) {
+    const transactions = this.items.filter(item => {
+      const matchIds =
+        item.id.value === originTransaction.id.value ||
+        item.originId?.value === originTransaction.id.value;
+
+      return matchIds && item.isAccomplished === true;
+    });
+    const amountTotal = transactions.reduce(
+      (total, { amount }) => total + amount,
+      0,
+    );
+
+    await this.deps.bankAccountRepository.updateUniqueByIdDecreasingBalance(
+      originTransaction.bankAccountId.value,
+      amountTotal,
+    );
+
+    for (const transaction of transactions) {
+      const transactionIndex = this.items.findIndex(
+        item => item.id.value === transaction.id.value,
+      );
+
+      if (transactionIndex < 0) continue;
+
+      this.items.splice(transactionIndex, 1);
+    }
+  }
+
+  public async deleteManyPending(originTransaction: EarningTransaction) {
+    const transactions = this.items.filter(item => {
+      const matchIds =
+        item.id.value === originTransaction.id.value ||
+        item.originId?.value === originTransaction.id.value;
+
+      return matchIds && item.isAccomplished === false;
+    });
+
+    for (const transaction of transactions) {
+      const transactionIndex = this.items.findIndex(
+        item => item.id.value === transaction.id.value,
+      );
+
+      if (transactionIndex < 0) continue;
+
+      this.items.splice(transactionIndex, 1);
+    }
+  }
 }

@@ -30,4 +30,6 @@ type EarningTransactionRecurrenceRepository = TransactionRepository<
 
 export interface EarningTransactionRepository
   extends CoreOperationsEarningTransactionRepository,
-    EarningTransactionRecurrenceRepository {}
+    EarningTransactionRecurrenceRepository {
+  deleteManyAccomplished(originTransaction: EarningTransaction): Promise<void>;
+}

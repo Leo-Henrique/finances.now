@@ -34,4 +34,5 @@ export interface TransactionRepository<
     originTransaction: Transaction,
     data: UpdateManyPendingData,
   ): Promise<void>;
+  deleteManyPending(originTransaction: Transaction): Promise<void>;
 }

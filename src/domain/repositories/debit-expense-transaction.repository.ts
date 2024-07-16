@@ -30,4 +30,8 @@ type DebitExpenseTransactionRecurrenceRepository = TransactionRepository<
 
 export interface DebitExpenseTransactionRepository
   extends CoreOperationsDebitExpenseTransactionRepository,
-    DebitExpenseTransactionRecurrenceRepository {}
+    DebitExpenseTransactionRecurrenceRepository {
+  deleteManyAccomplished(
+    originTransaction: DebitExpenseTransaction,
+  ): Promise<void>;
+}

@@ -30,4 +30,8 @@ type TransferenceTransactionRecurrenceRepository = TransactionRepository<
 
 export interface TransferenceTransactionRepository
   extends CoreOperationsTransferenceTransactionRepository,
-    TransferenceTransactionRecurrenceRepository {}
+    TransferenceTransactionRecurrenceRepository {
+  deleteManyAccomplished(
+    originTransaction: TransferenceTransaction,
+  ): Promise<void>;
+}

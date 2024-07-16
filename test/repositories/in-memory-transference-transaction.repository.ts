@@ -215,4 +215,78 @@ export class InMemoryTransferenceTransactionRepository
       }
     }
   }
+
+  public async delete(transferenceTransaction: TransferenceTransaction) {
+    const transaction = this.items.findIndex(
+      item => item.id.value === transferenceTransaction.id.value,
+    );
+
+    if (transaction < 0) return;
+
+    this.items.splice(transaction, 1);
+
+    await Promise.all([
+      this.deps.bankAccountRepository.updateUniqueByIdIncreasingBalance(
+        transferenceTransaction.originBankAccountId.value,
+        transferenceTransaction.amount,
+      ),
+      await this.deps.bankAccountRepository.updateUniqueByIdDecreasingBalance(
+        transferenceTransaction.destinyBankAccountId.value,
+        transferenceTransaction.amount,
+      ),
+    ]);
+  }
+
+  public async deleteManyAccomplished(
+    originTransaction: TransferenceTransaction,
+  ) {
+    const transactions = this.items.filter(item => {
+      const matchIds =
+        item.id.value === originTransaction.id.value ||
+        item.originId?.value === originTransaction.id.value;
+
+      return matchIds && item.isAccomplished === true;
+    });
+
+    for (const transaction of transactions) {
+      const transactionIndex = this.items.findIndex(
+        item => item.id.value === transaction.id.value,
+      );
+
+      if (transactionIndex < 0) continue;
+
+      await Promise.all([
+        this.deps.bankAccountRepository.updateUniqueByIdIncreasingBalance(
+          transaction.originBankAccountId.value,
+          transaction.amount,
+        ),
+        await this.deps.bankAccountRepository.updateUniqueByIdDecreasingBalance(
+          transaction.destinyBankAccountId.value,
+          transaction.amount,
+        ),
+      ]);
+
+      this.items.splice(transactionIndex, 1);
+    }
+  }
+
+  public async deleteManyPending(originTransaction: TransferenceTransaction) {
+    const transactions = this.items.filter(item => {
+      const matchIds =
+        item.id.value === originTransaction.id.value ||
+        item.originId?.value === originTransaction.id.value;
+
+      return matchIds && item.isAccomplished === false;
+    });
+
+    for (const transaction of transactions) {
+      const transactionIndex = this.items.findIndex(
+        item => item.id.value === transaction.id.value,
+      );
+
+      if (transactionIndex < 0) continue;
+
+      this.items.splice(transactionIndex, 1);
+    }
+  }
 }
