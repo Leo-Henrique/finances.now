@@ -11,7 +11,7 @@ import {
   UpdateManyPendingTransferenceTransactionsData,
 } from "@/domain/repositories/transference-transaction.repository";
 
-export const transferenceTransactionsNumberPerTimeInRecurrence = 500;
+export const IN_MEMORY_COUNT_BATCH_TRANSFERENCE_TRANSACTIONS_IN_RECURRENCE = 100;
 
 type InMemoryTransferenceTransactionRepositoryDeps = {
   bankAccountRepository: BankAccountRepository;
@@ -47,7 +47,8 @@ export class InMemoryTransferenceTransactionRepository
     for (
       let currentRecurrence = 1;
       currentRecurrence <=
-      (recurrenceLimit ?? transferenceTransactionsNumberPerTimeInRecurrence);
+      (recurrenceLimit ??
+        IN_MEMORY_COUNT_BATCH_TRANSFERENCE_TRANSACTIONS_IN_RECURRENCE);
       currentRecurrence++
     ) {
       let [year, month, day] = [
@@ -100,7 +101,7 @@ export class InMemoryTransferenceTransactionRepository
 
     let index =
       recurringTransactions.length -
-      (transferenceTransactionsNumberPerTimeInRecurrence / 2 + 1);
+      (IN_MEMORY_COUNT_BATCH_TRANSFERENCE_TRANSACTIONS_IN_RECURRENCE / 2 + 1);
 
     if (index < 1) index = recurringTransactions.length / 2 + 1;
 

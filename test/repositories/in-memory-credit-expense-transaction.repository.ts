@@ -11,7 +11,7 @@ import {
   UpdateManyPendingCreditExpenseTransactionsData,
 } from "@/domain/repositories/credit-expense-transaction.repository";
 
-export const creditExpenseTransactionsNumberPerTimeInRecurrence = 500;
+export const IN_MEMORY_COUNT_BATCH_CREDIT_EXPENSE_TRANSACTIONS_IN_RECURRENCE = 100;
 
 type InMemoryCreditExpenseTransactionRepositoryDeps = {
   creditCardRepository: CreditCardRepository;
@@ -47,7 +47,8 @@ export class InMemoryCreditExpenseTransactionRepository
     for (
       let currentRecurrence = 1;
       currentRecurrence <=
-      (recurrenceLimit ?? creditExpenseTransactionsNumberPerTimeInRecurrence);
+      (recurrenceLimit ??
+        IN_MEMORY_COUNT_BATCH_CREDIT_EXPENSE_TRANSACTIONS_IN_RECURRENCE);
       currentRecurrence++
     ) {
       let [year, month, day] = [
@@ -100,7 +101,7 @@ export class InMemoryCreditExpenseTransactionRepository
 
     let index =
       recurringTransactions.length -
-      (creditExpenseTransactionsNumberPerTimeInRecurrence / 2 + 1);
+      (IN_MEMORY_COUNT_BATCH_CREDIT_EXPENSE_TRANSACTIONS_IN_RECURRENCE / 2 + 1);
 
     if (index < 1) index = recurringTransactions.length / 2 + 1;
 

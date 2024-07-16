@@ -2,8 +2,8 @@ import { faker } from "@faker-js/faker";
 import { makeEarningTransaction } from "test/factories/make-earning-transaction";
 import { InMemoryBankAccountRepository } from "test/repositories/in-memory-bank-account.repository";
 import {
+  IN_MEMORY_COUNT_BATCH_EARNING_TRANSACTIONS_IN_RECURRENCE,
   InMemoryEarningTransactionRepository,
-  earningTransactionsNumberPerTimeInRecurrence,
 } from "test/repositories/in-memory-earning-transaction.repository";
 import { InMemoryJobSchedulingService } from "test/services/in-memory-job-scheduling.service";
 import { millisecondsRemainingForDate } from "test/utils/milliseconds-remaining-for-date";
@@ -47,12 +47,9 @@ describe("[Use Case] Create transaction recurrence", () => {
       originTransaction: originTransaction.entity,
     });
 
-    const countTransactionsAddedAtTime =
-      earningTransactionsNumberPerTimeInRecurrence;
-
     expect(isRight()).toBeTruthy();
     expect(earningTransactionRepository.items).toHaveLength(
-      countTransactionsAddedAtTime,
+      IN_MEMORY_COUNT_BATCH_EARNING_TRANSACTIONS_IN_RECURRENCE,
     );
 
     const expectedOfRecurringTransactions = (
@@ -100,7 +97,8 @@ describe("[Use Case] Create transaction recurrence", () => {
 
     const getMiddleRecurringTransactedDate = () => {
       const countTransactions = earningTransactionRepository.items.length;
-      const factorIndex = countTransactionsAddedAtTime / 2 + 1;
+      const factorIndex =
+        IN_MEMORY_COUNT_BATCH_EARNING_TRANSACTIONS_IN_RECURRENCE / 2 + 1;
       const transaction =
         earningTransactionRepository.items[countTransactions - factorIndex];
 
@@ -113,7 +111,9 @@ describe("[Use Case] Create transaction recurrence", () => {
       );
       await new Promise(process.nextTick);
 
-      const currentPart = countTransactionsAddedAtTime * transactionsPart;
+      const currentPart =
+        IN_MEMORY_COUNT_BATCH_EARNING_TRANSACTIONS_IN_RECURRENCE *
+        transactionsPart;
 
       expectedOfRecurringTransactions(currentPart, currentPart + 30);
     }

@@ -11,7 +11,7 @@ import {
   UpdateManyPendingEarningTransactionsData,
 } from "@/domain/repositories/earning-transaction.repository";
 
-export const earningTransactionsNumberPerTimeInRecurrence = 500;
+export const IN_MEMORY_COUNT_BATCH_EARNING_TRANSACTIONS_IN_RECURRENCE = 100;
 
 type InMemoryEarningTransactionRepositoryDeps = {
   bankAccountRepository: BankAccountRepository;
@@ -45,7 +45,8 @@ export class InMemoryEarningTransactionRepository
     for (
       let currentRecurrence = 1;
       currentRecurrence <=
-      (recurrenceLimit ?? earningTransactionsNumberPerTimeInRecurrence);
+      (recurrenceLimit ??
+        IN_MEMORY_COUNT_BATCH_EARNING_TRANSACTIONS_IN_RECURRENCE);
       currentRecurrence++
     ) {
       let [year, month, day] = [
@@ -98,7 +99,7 @@ export class InMemoryEarningTransactionRepository
 
     let index =
       recurringTransactions.length -
-      (earningTransactionsNumberPerTimeInRecurrence / 2 + 1);
+      (IN_MEMORY_COUNT_BATCH_EARNING_TRANSACTIONS_IN_RECURRENCE / 2 + 1);
 
     if (index < 1) index = recurringTransactions.length / 2 + 1;
 
