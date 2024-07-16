@@ -230,15 +230,6 @@ export class InMemoryEarningTransactionRepository
 
       return matchIds && item.isAccomplished === true;
     });
-    const amountTotal = transactions.reduce(
-      (total, { amount }) => total + amount,
-      0,
-    );
-
-    await this.deps.bankAccountRepository.updateUniqueByIdDecreasingBalance(
-      originTransaction.bankAccountId.value,
-      amountTotal,
-    );
 
     for (const transaction of transactions) {
       const transactionIndex = this.items.findIndex(
@@ -246,6 +237,11 @@ export class InMemoryEarningTransactionRepository
       );
 
       if (transactionIndex < 0) continue;
+
+      await this.deps.bankAccountRepository.updateUniqueByIdDecreasingBalance(
+        transaction.bankAccountId.value,
+        transaction.amount,
+      );
 
       this.items.splice(transactionIndex, 1);
     }
