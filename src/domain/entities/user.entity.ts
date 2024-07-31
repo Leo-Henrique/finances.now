@@ -9,7 +9,7 @@ import {
 import { BaseEntity } from "@/core/entities/base-entity";
 import { z } from "zod";
 import { Name } from "./value-objects/name";
-import { PasswordHash } from "./value-objects/password-hash";
+import { Password } from "./value-objects/password";
 
 export type User = EntityInstance<UserEntity>;
 
@@ -38,8 +38,8 @@ export class UserEntity
 
   definePassword() {
     return {
-      schema: PasswordHash.schema,
-      transform: (val: string) => new PasswordHash(val),
+      schema: Password.schema,
+      transform: (val: string) => new Password(val),
     };
   }
 

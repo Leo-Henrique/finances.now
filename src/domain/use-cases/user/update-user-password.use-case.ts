@@ -7,6 +7,7 @@ import {
   ResourceNotFoundError,
   UnauthorizedError,
 } from "@/domain/errors";
+import { PasswordHasher } from "@/domain/gateways/password-hasher";
 import { UserRepository } from "@/domain/repositories/user.repository";
 import { z } from "zod";
 
@@ -29,6 +30,7 @@ type UpdateUserPasswordUseCaseOutput = Either<
 
 type UpdateUserPasswordUseCaseDeps = {
   userRepository: UserRepository;
+  passwordHasher: PasswordHasher;
 };
 
 export class UpdateUserPasswordUseCase extends UseCase<
@@ -49,16 +51,24 @@ export class UpdateUserPasswordUseCase extends UseCase<
 
     if (!user) return left(new ResourceNotFoundError("usuário"));
 
-    const isValidCurrentPassword = user.password.match(currentPassword);
+    const isValidCurrentPassword = await this.deps.passwordHasher.match(
+      currentPassword,
+      user.password.value,
+    );
 
     if (!isValidCurrentPassword) return left(new UnauthorizedError());
 
-    const newPasswordIsSameAsCurrent = user.password.match(newPassword);
+    const newPasswordIsSameAsCurrent = await this.deps.passwordHasher.match(
+      newPassword,
+      user.password.value,
+    );
 
     if (newPasswordIsSameAsCurrent)
       return left(new NewPasswordSameAsCurrentError());
 
-    const updatedFields = user.update({ password: newPassword });
+    const newPasswordHashed = await this.deps.passwordHasher.hash(newPassword);
+
+    const updatedFields = user.update({ password: newPasswordHashed });
 
     await this.deps.userRepository.update(user, updatedFields);
 

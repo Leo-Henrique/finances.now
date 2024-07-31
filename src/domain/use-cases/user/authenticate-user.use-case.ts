@@ -1,10 +1,8 @@
 import { Either, left, right } from "@/core/either";
 import { UseCase } from "@/core/use-case";
 import { User, UserEntity } from "@/domain/entities/user.entity";
-import {
-  InvalidCredentialsError,
-  ResourceNotFoundError,
-} from "@/domain/errors";
+import { InvalidCredentialsError } from "@/domain/errors";
+import { PasswordHasher } from "@/domain/gateways/password-hasher";
 import { UserRepository } from "@/domain/repositories/user.repository";
 import { z } from "zod";
 
@@ -18,7 +16,7 @@ type AuthenticateUserUseCaseInput = z.infer<
 >;
 
 type AuthenticateUserUseCaseOutput = Either<
-  ResourceNotFoundError | InvalidCredentialsError,
+  InvalidCredentialsError,
   {
     user: User["serialized"];
   }
@@ -26,6 +24,7 @@ type AuthenticateUserUseCaseOutput = Either<
 
 type AuthenticateUserUseCaseDeps = {
   userRepository: UserRepository;
+  passwordHasher: PasswordHasher;
 };
 
 export class AuthenticateUserUseCase extends UseCase<
@@ -43,9 +42,12 @@ export class AuthenticateUserUseCase extends UseCase<
   }: AuthenticateUserUseCaseInput): Promise<AuthenticateUserUseCaseOutput> {
     const user = await this.deps.userRepository.findUniqueByEmail(email);
 
-    if (!user) return left(new ResourceNotFoundError("usuário"));
+    if (!user) return left(new InvalidCredentialsError());
 
-    const isValidPassword = user.password.match(password);
+    const isValidPassword = await this.deps.passwordHasher.match(
+      password,
+      user.password.value,
+    );
 
     if (!isValidPassword) return left(new InvalidCredentialsError());
 

@@ -6,11 +6,13 @@ import {
 } from "@/domain/errors";
 import { faker } from "@faker-js/faker";
 import { makeUser } from "test/factories/make-user";
+import { FakePasswordHasher } from "test/gateways/fake-password-hasher";
 import { InMemoryUserRepository } from "test/repositories/in-memory-user.repository";
 import { beforeEach, describe, expect, it } from "vitest";
 import { UpdateUserPasswordUseCase } from "./update-user-password.use-case";
 
 let userRepository: InMemoryUserRepository;
+let passwordHasher: FakePasswordHasher;
 let sut: UpdateUserPasswordUseCase;
 let user: ReturnType<typeof makeUser>;
 
@@ -19,13 +21,18 @@ const currentPassword = "123456";
 describe("[Use Case] Update user password", () => {
   beforeEach(async () => {
     userRepository = new InMemoryUserRepository();
-    sut = new UpdateUserPasswordUseCase({ userRepository });
+    passwordHasher = new FakePasswordHasher();
+    sut = new UpdateUserPasswordUseCase({ userRepository, passwordHasher });
     user = makeUser({ password: currentPassword });
 
     await userRepository.create(user.entity);
+
+    user.entity.update({
+      password: await passwordHasher.hash(user.input.password),
+    });
   });
 
-  it("should be able to update an user password", async () => {
+  it("should be able to update a user password", async () => {
     const updatedPassword = faker.internet.password();
     const { isRight, result } = await sut.execute<"success">({
       userId: user.entity.id.value,
@@ -33,15 +40,17 @@ describe("[Use Case] Update user password", () => {
       newPassword: updatedPassword,
     });
 
-    const isValidUpdatedPassword =
-      userRepository.items[0].password.match(updatedPassword);
+    const isValidUpdatedPassword = await passwordHasher.match(
+      updatedPassword,
+      userRepository.items[0].password.value,
+    );
 
     expect(isRight()).toBeTruthy();
     expect(result.user.id.value).toEqual(user.entity.id.value);
     expect(isValidUpdatedPassword).toBeTruthy();
   });
 
-  it("should not be able to update password an non-existent user", async () => {
+  it("should not be able to update password a non-existent user", async () => {
     const { isLeft, reason } = await sut.execute<"error">({
       userId: faker.string.uuid(),
       currentPassword,

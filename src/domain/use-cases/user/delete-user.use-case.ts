@@ -3,6 +3,7 @@ import { UniqueEntityId } from "@/core/entities/unique-entity-id";
 import { UseCase } from "@/core/use-case";
 import { UserEntity } from "@/domain/entities/user.entity";
 import { ResourceNotFoundError, UnauthorizedError } from "@/domain/errors";
+import { PasswordHasher } from "@/domain/gateways/password-hasher";
 import { UserRepository } from "@/domain/repositories/user.repository";
 import { z } from "zod";
 
@@ -15,11 +16,12 @@ type DeleteUserUseCaseInput = z.infer<typeof deleteUserUseCaseSchema>;
 
 type DeleteUserUseCaseOutput = Either<
   ResourceNotFoundError | UnauthorizedError,
-  Record<never, never>
+  null
 >;
 
 type DeleteUserUseCaseDeps = {
   userRepository: UserRepository;
+  passwordHasher: PasswordHasher;
 };
 
 export class DeleteUserUseCase extends UseCase<
@@ -39,12 +41,15 @@ export class DeleteUserUseCase extends UseCase<
 
     if (!user) return left(new ResourceNotFoundError("usuário"));
 
-    const isValidCurrentPassword = user.password.match(currentPassword);
+    const isValidCurrentPassword = await this.deps.passwordHasher.match(
+      currentPassword,
+      user.password.value,
+    );
 
     if (!isValidCurrentPassword) return left(new UnauthorizedError());
 
     await this.deps.userRepository.delete(user);
 
-    return right({});
+    return right(null);
   }
 }

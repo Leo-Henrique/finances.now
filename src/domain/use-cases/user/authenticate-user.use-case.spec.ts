@@ -1,28 +1,32 @@
 import { ValidationError } from "@/core/errors/errors";
-import {
-  InvalidCredentialsError,
-  ResourceNotFoundError,
-} from "@/domain/errors";
+import { InvalidCredentialsError } from "@/domain/errors";
 import { faker } from "@faker-js/faker";
 import { makeUser } from "test/factories/make-user";
+import { FakePasswordHasher } from "test/gateways/fake-password-hasher";
 import { InMemoryUserRepository } from "test/repositories/in-memory-user.repository";
 import { beforeEach, describe, expect, it } from "vitest";
 import { AuthenticateUserUseCase } from "./authenticate-user.use-case";
 
 let userRepository: InMemoryUserRepository;
+let passwordHasher: FakePasswordHasher;
 let sut: AuthenticateUserUseCase;
 let user: ReturnType<typeof makeUser>;
 
 describe("[Use Case] Authenticate user", () => {
   beforeEach(async () => {
     userRepository = new InMemoryUserRepository();
-    sut = new AuthenticateUserUseCase({ userRepository });
+    passwordHasher = new FakePasswordHasher();
+    sut = new AuthenticateUserUseCase({ userRepository, passwordHasher });
     user = makeUser();
 
     await userRepository.create(user.entity);
+
+    user.entity.update({
+      password: await passwordHasher.hash(user.input.password),
+    });
   });
 
-  it("should be able to authenticate an user", async () => {
+  it("should be able to authenticate a user", async () => {
     const { isRight, result } = await sut.execute<"success">(user.input);
 
     expect(isRight()).toBeTruthy();
@@ -38,7 +42,7 @@ describe("[Use Case] Authenticate user", () => {
     });
 
     expect(isLeft()).toBeTruthy();
-    expect(reason).toBeInstanceOf(ResourceNotFoundError);
+    expect(reason).toBeInstanceOf(InvalidCredentialsError);
   });
 
   it("should not be able to register a user with invalid password", async () => {
@@ -52,7 +56,7 @@ describe("[Use Case] Authenticate user", () => {
   });
 
   describe("[Business Roles] given invalid input", () => {
-    it("should not be able to authenticate an user with invalid email", async () => {
+    it("should not be able to authenticate a user with invalid email", async () => {
       const { isLeft, reason } = await sut.execute<"error">({
         ...user.input,
         email: faker.lorem.sentence(),
@@ -62,7 +66,7 @@ describe("[Use Case] Authenticate user", () => {
       expect(reason).toBeInstanceOf(ValidationError);
     });
 
-    it("should not be able to authenticate an user with invalid password", async () => {
+    it("should not be able to authenticate a user with invalid password", async () => {
       const { isLeft, reason } = await sut.execute<"error">({
         ...user.input,
         password: faker.string.alphanumeric({ length: { min: 0, max: 5 } }),
