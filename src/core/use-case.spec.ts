@@ -8,7 +8,6 @@ import { UseCase } from "./use-case";
 
 class FakeError extends DomainError {
   public error = "FakeError";
-  public HTTPStatusCode = 500;
   public debug = null;
 
   constructor() {

@@ -10,7 +10,6 @@ type Resources =
 
 export class ResourceAlreadyExistsError extends DomainError {
   public error = "ResourceAlreadyExistsError";
-  public HTTPStatusCode = 409;
   public debug = null;
 
   constructor(resource: Resources) {
@@ -20,7 +19,6 @@ export class ResourceAlreadyExistsError extends DomainError {
 
 export class ResourceNotFoundError extends DomainError {
   public error = "ResourceNotFoundError";
-  public HTTPStatusCode = 400;
   public debug = null;
 
   constructor(resource: Resources) {
@@ -30,7 +28,6 @@ export class ResourceNotFoundError extends DomainError {
 
 export class InvalidCredentialsError extends DomainError {
   public error = "InvalidCredentialsError";
-  public HTTPStatusCode = 401;
   public debug = null;
 
   constructor() {
@@ -40,7 +37,6 @@ export class InvalidCredentialsError extends DomainError {
 
 export class UnauthorizedError extends DomainError {
   public error = "UnauthorizedError";
-  public HTTPStatusCode = 401;
   public debug = null;
 
   constructor() {
@@ -50,7 +46,6 @@ export class UnauthorizedError extends DomainError {
 
 export class ForbiddenActionError extends DomainError {
   public error = "ForbiddenActionError";
-  public HTTPStatusCode = 403;
   public debug = null;
 
   constructor() {
@@ -60,7 +55,6 @@ export class ForbiddenActionError extends DomainError {
 
 export class NewPasswordSameAsCurrentError extends DomainError {
   public error = "NewPasswordSameAsCurrentError";
-  public HTTPStatusCode = 400;
   public debug = null;
 
   constructor() {
@@ -70,7 +64,6 @@ export class NewPasswordSameAsCurrentError extends DomainError {
 
 export class TransactionAlreadyAccomplishedError extends DomainError {
   public error = "TransactionAlreadyAccomplishedError";
-  public HTTPStatusCode = 400;
   public debug = null;
 
   constructor() {

@@ -11,7 +11,6 @@ import {
 import { DomainError } from "./errors/domain-error";
 
 class FakeError extends DomainError {
-  public HTTPStatusCode = 0;
   public error = "FakeError";
   public debug = null;
 
