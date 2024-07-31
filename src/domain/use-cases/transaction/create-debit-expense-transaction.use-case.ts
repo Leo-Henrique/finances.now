@@ -7,10 +7,10 @@ import {
   DebitExpenseTransactionEntity,
 } from "@/domain/entities/debit-expense-transaction.entity";
 import { ResourceNotFoundError } from "@/domain/errors";
+import { JobScheduling } from "@/domain/gateways/job-scheduling";
 import { BankAccountRepository } from "@/domain/repositories/bank-account.repository";
 import { DebitExpenseTransactionRepository } from "@/domain/repositories/debit-expense-transaction.repository";
 import { TransactionCategoryRepository } from "@/domain/repositories/transaction-category.repository";
-import { JobSchedulingService } from "@/domain/services/job-scheduling.service";
 import { z } from "zod";
 import { CreateTransactionRecurrenceUseCase } from "./create-transaction-recurrence.use-case";
 
@@ -32,7 +32,7 @@ type CreateDebitExpenseTransactionUseCaseDeps = {
   bankAccountRepository: BankAccountRepository;
   transactionCategoryRepository: TransactionCategoryRepository;
   debitExpenseTransactionRepository: DebitExpenseTransactionRepository;
-  jobSchedulingService: JobSchedulingService;
+  jobScheduling: JobScheduling;
   unitOfWork: UnitOfWork;
   createTransactionRecurrenceUseCase: CreateTransactionRecurrenceUseCase;
 };

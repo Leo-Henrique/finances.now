@@ -3,8 +3,8 @@ import { UnitOfWork } from "@/core/unit-of-work";
 import { UseCase } from "@/core/use-case";
 import { Transaction } from "@/domain/entities/transaction.entity";
 import { ResourceNotFoundError } from "@/domain/errors";
+import { JobScheduling } from "@/domain/gateways/job-scheduling";
 import { TransactionRepository } from "@/domain/repositories/transaction.repository";
-import { JobSchedulingService } from "@/domain/services/job-scheduling.service";
 
 type CreateTransactionRecurrenceUseCaseInput = {
   originTransaction: Transaction;
@@ -19,7 +19,7 @@ export type CreateTransactionRecurrenceUseCaseOutput = Either<
 
 type CreateTransactionRecurrenceUseCaseDeps = {
   transactionRecurrenceRepository: TransactionRepository;
-  jobSchedulingService: JobSchedulingService;
+  jobScheduling: JobScheduling;
   unitOfWork: UnitOfWork;
 };
 
@@ -40,7 +40,7 @@ export class CreateTransactionRecurrenceUseCase extends UseCase<
     const { recurrenceLimit } = originTransaction;
     const handleRecurrence = async () => {
       if (update) {
-        await this.deps.jobSchedulingService.deleteManyByKey(
+        await this.deps.jobScheduling.deleteManyByKey(
           originTransaction.id.value,
         );
       } else {
@@ -61,7 +61,7 @@ export class CreateTransactionRecurrenceUseCase extends UseCase<
           );
         }
 
-        await this.deps.jobSchedulingService.createRepeatableByDynamicDate(
+        await this.deps.jobScheduling.createRepeatableByDynamicDate(
           async () => {
             const endTransactionOfCurrentRecurrence =
               await this.deps.transactionRecurrenceRepository.findUniqueEndOfCurrentRecurrence(

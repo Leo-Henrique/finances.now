@@ -5,10 +5,10 @@ import { makeBankAccount } from "test/factories/make-bank-account";
 import { makeDebitExpenseTransaction } from "test/factories/make-debit-expense-transaction";
 import { makeTransactionCategory } from "test/factories/make-transaction-category";
 import { FakeUnitOfWork } from "test/gateways/fake-unit-of-work";
+import { InMemoryJobScheduling } from "test/gateways/in-memory-job-scheduling";
 import { InMemoryBankAccountRepository } from "test/repositories/in-memory-bank-account.repository";
 import { InMemoryDebitExpenseTransactionRepository } from "test/repositories/in-memory-debit-expense-transaction.repository";
 import { InMemoryTransactionCategoryRepository } from "test/repositories/in-memory-transaction-category.repository";
-import { InMemoryJobSchedulingService } from "test/services/in-memory-job-scheduling.service";
 import { dayInMilliseconds } from "test/utils/day-in-milliseconds";
 import { beforeEach, describe, expect, it } from "vitest";
 import { CreateDebitExpenseTransactionUseCase } from "./create-debit-expense-transaction.use-case";
@@ -17,7 +17,7 @@ import { CreateTransactionRecurrenceUseCase } from "./create-transaction-recurre
 let bankAccountRepository: InMemoryBankAccountRepository;
 let transactionCategoryRepository: InMemoryTransactionCategoryRepository;
 let debitExpenseTransactionRepository: InMemoryDebitExpenseTransactionRepository;
-let jobSchedulingService: InMemoryJobSchedulingService;
+let jobScheduling: InMemoryJobScheduling;
 let unitOfWork: FakeUnitOfWork;
 let createTransactionRecurrenceUseCase: CreateTransactionRecurrenceUseCase;
 
@@ -33,12 +33,12 @@ describe("[Use Case] Create debit expense transaction", () => {
     transactionCategoryRepository = new InMemoryTransactionCategoryRepository();
     debitExpenseTransactionRepository =
       new InMemoryDebitExpenseTransactionRepository({ bankAccountRepository });
-    jobSchedulingService = new InMemoryJobSchedulingService();
+    jobScheduling = new InMemoryJobScheduling();
     unitOfWork = new FakeUnitOfWork();
     createTransactionRecurrenceUseCase = new CreateTransactionRecurrenceUseCase(
       {
         transactionRecurrenceRepository: debitExpenseTransactionRepository,
-        jobSchedulingService,
+        jobScheduling,
         unitOfWork,
       },
     );
@@ -47,7 +47,7 @@ describe("[Use Case] Create debit expense transaction", () => {
       bankAccountRepository,
       transactionCategoryRepository,
       debitExpenseTransactionRepository,
-      jobSchedulingService,
+      jobScheduling,
       unitOfWork,
       createTransactionRecurrenceUseCase,
     });

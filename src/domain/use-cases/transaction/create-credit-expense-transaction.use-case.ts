@@ -8,10 +8,10 @@ import {
 } from "@/domain/entities/credit-expense-transaction.entity";
 
 import { ResourceNotFoundError } from "@/domain/errors";
+import { JobScheduling } from "@/domain/gateways/job-scheduling";
 import { CreditCardRepository } from "@/domain/repositories/credit-card.repository";
 import { CreditExpenseTransactionRepository } from "@/domain/repositories/credit-expense-transaction.repository";
 import { TransactionCategoryRepository } from "@/domain/repositories/transaction-category.repository";
-import { JobSchedulingService } from "@/domain/services/job-scheduling.service";
 import { z } from "zod";
 import { CreateTransactionRecurrenceUseCase } from "./create-transaction-recurrence.use-case";
 
@@ -35,7 +35,7 @@ type CreateCreditExpenseTransactionUseCaseDeps = {
   creditCardRepository: CreditCardRepository;
   transactionCategoryRepository: TransactionCategoryRepository;
   creditExpenseTransactionRepository: CreditExpenseTransactionRepository;
-  jobSchedulingService: JobSchedulingService;
+  jobScheduling: JobScheduling;
   unitOfWork: UnitOfWork;
   createTransactionRecurrenceUseCase: CreateTransactionRecurrenceUseCase;
 };

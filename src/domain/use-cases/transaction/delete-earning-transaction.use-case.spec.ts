@@ -4,16 +4,16 @@ import { faker } from "@faker-js/faker";
 import { makeBankAccount } from "test/factories/make-bank-account";
 import { makeEarningTransaction } from "test/factories/make-earning-transaction";
 import { FakeUnitOfWork } from "test/gateways/fake-unit-of-work";
+import { InMemoryJobScheduling } from "test/gateways/in-memory-job-scheduling";
 import { InMemoryBankAccountRepository } from "test/repositories/in-memory-bank-account.repository";
 import { InMemoryEarningTransactionRepository } from "test/repositories/in-memory-earning-transaction.repository";
-import { InMemoryJobSchedulingService } from "test/services/in-memory-job-scheduling.service";
 import { beforeEach, describe, expect, it } from "vitest";
 import { DeleteEarningTransactionUseCase } from "./delete-earning-transaction.use-case";
 
 let bankAccountRepository: InMemoryBankAccountRepository;
 let earningTransactionRepository: InMemoryEarningTransactionRepository;
 let unitOfWork: FakeUnitOfWork;
-let jobSchedulingService: InMemoryJobSchedulingService;
+let jobScheduling: InMemoryJobScheduling;
 
 let sut: DeleteEarningTransactionUseCase;
 
@@ -28,12 +28,12 @@ describe("[Use Case] Delete earning transaction", () => {
       bankAccountRepository,
     });
     unitOfWork = new FakeUnitOfWork();
-    jobSchedulingService = new InMemoryJobSchedulingService();
+    jobScheduling = new InMemoryJobScheduling();
 
     sut = new DeleteEarningTransactionUseCase({
       earningTransactionRepository,
       unitOfWork,
-      jobSchedulingService,
+      jobScheduling,
     });
 
     const initialBalance = faker.number.float({

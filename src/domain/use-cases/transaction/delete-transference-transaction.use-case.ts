@@ -3,8 +3,8 @@ import { UniqueEntityId } from "@/core/entities/unique-entity-id";
 import { UnitOfWork } from "@/core/unit-of-work";
 import { UseCase } from "@/core/use-case";
 import { ResourceNotFoundError } from "@/domain/errors";
+import { JobScheduling } from "@/domain/gateways/job-scheduling";
 import { TransferenceTransactionRepository } from "@/domain/repositories/transference-transaction.repository";
-import { JobSchedulingService } from "@/domain/services/job-scheduling.service";
 import { z } from "zod";
 
 const deleteTransferenceTransactionUseCaseSchema = z.object({
@@ -24,7 +24,7 @@ type DeleteTransferenceTransactionUseCaseOutput = Either<
 
 type DeleteTransferenceTransactionUseCaseDeps = {
   transferenceTransactionRepository: TransferenceTransactionRepository;
-  jobSchedulingService: JobSchedulingService;
+  jobScheduling: JobScheduling;
   unitOfWork: UnitOfWork;
 };
 
@@ -77,7 +77,7 @@ export class DeleteTransferenceTransactionUseCase extends UseCase<
           transferenceTransaction,
         );
 
-        await this.deps.jobSchedulingService.deleteManyByKey(
+        await this.deps.jobScheduling.deleteManyByKey(
           originTransaction!.id.value,
         );
       }

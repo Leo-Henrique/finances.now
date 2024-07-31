@@ -1,9 +1,9 @@
 import {
   CreateJobOptions,
-  JobSchedulingService,
+  JobScheduling,
   Work,
   WorkWithDynamicDate,
-} from "@/domain/services/job-scheduling.service";
+} from "@/domain/gateways/job-scheduling";
 import { randomUUID } from "crypto";
 
 interface Job {
@@ -11,7 +11,7 @@ interface Job {
   key: string | null;
 }
 
-export class InMemoryJobSchedulingService implements JobSchedulingService {
+export class InMemoryJobScheduling implements JobScheduling {
   public items: Job[] = [];
 
   private create(options: CreateJobOptions = {}) {

@@ -7,9 +7,9 @@ import {
   TransferenceTransactionEntity,
 } from "@/domain/entities/transference-transaction.entity";
 import { ResourceNotFoundError } from "@/domain/errors";
+import { JobScheduling } from "@/domain/gateways/job-scheduling";
 import { BankAccountRepository } from "@/domain/repositories/bank-account.repository";
 import { TransferenceTransactionRepository } from "@/domain/repositories/transference-transaction.repository";
-import { JobSchedulingService } from "@/domain/services/job-scheduling.service";
 import { z } from "zod";
 import { CreateTransactionRecurrenceUseCase } from "./create-transaction-recurrence.use-case";
 
@@ -30,7 +30,7 @@ export type CreateTransferenceTransactionUseCaseOutput = Either<
 type CreateTransferenceTransactionUseCaseDeps = {
   bankAccountRepository: BankAccountRepository;
   transferenceTransactionRepository: TransferenceTransactionRepository;
-  jobSchedulingService: JobSchedulingService;
+  jobScheduling: JobScheduling;
   unitOfWork: UnitOfWork;
   createTransactionRecurrenceUseCase: CreateTransactionRecurrenceUseCase;
 };

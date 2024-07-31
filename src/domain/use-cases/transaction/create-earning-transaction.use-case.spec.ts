@@ -5,10 +5,10 @@ import { makeBankAccount } from "test/factories/make-bank-account";
 import { makeEarningTransaction } from "test/factories/make-earning-transaction";
 import { makeTransactionCategory } from "test/factories/make-transaction-category";
 import { FakeUnitOfWork } from "test/gateways/fake-unit-of-work";
+import { InMemoryJobScheduling } from "test/gateways/in-memory-job-scheduling";
 import { InMemoryBankAccountRepository } from "test/repositories/in-memory-bank-account.repository";
 import { InMemoryEarningTransactionRepository } from "test/repositories/in-memory-earning-transaction.repository";
 import { InMemoryTransactionCategoryRepository } from "test/repositories/in-memory-transaction-category.repository";
-import { InMemoryJobSchedulingService } from "test/services/in-memory-job-scheduling.service";
 import { dayInMilliseconds } from "test/utils/day-in-milliseconds";
 import { beforeEach, describe, expect, it } from "vitest";
 import { CreateEarningTransactionUseCase } from "./create-earning-transaction.use-case";
@@ -17,7 +17,7 @@ import { CreateTransactionRecurrenceUseCase } from "./create-transaction-recurre
 let bankAccountRepository: InMemoryBankAccountRepository;
 let transactionCategoryRepository: InMemoryTransactionCategoryRepository;
 let earningTransactionRepository: InMemoryEarningTransactionRepository;
-let jobSchedulingService: InMemoryJobSchedulingService;
+let jobScheduling: InMemoryJobScheduling;
 let unitOfWork: FakeUnitOfWork;
 let createTransactionRecurrenceUseCase: CreateTransactionRecurrenceUseCase;
 
@@ -34,11 +34,11 @@ describe("[Use Case] Create earning transaction", () => {
     earningTransactionRepository = new InMemoryEarningTransactionRepository({
       bankAccountRepository,
     });
-    jobSchedulingService = new InMemoryJobSchedulingService();
+    jobScheduling = new InMemoryJobScheduling();
     unitOfWork = new FakeUnitOfWork();
     createTransactionRecurrenceUseCase = new CreateTransactionRecurrenceUseCase(
       {
-        jobSchedulingService,
+        jobScheduling,
         transactionRecurrenceRepository: earningTransactionRepository,
         unitOfWork,
       },
@@ -49,7 +49,7 @@ describe("[Use Case] Create earning transaction", () => {
       transactionCategoryRepository,
       earningTransactionRepository,
       createTransactionRecurrenceUseCase,
-      jobSchedulingService,
+      jobScheduling,
       unitOfWork,
     });
 

@@ -4,16 +4,16 @@ import { faker } from "@faker-js/faker";
 import { makeBankAccount } from "test/factories/make-bank-account";
 import { makeDebitExpenseTransaction } from "test/factories/make-debit-expense-transaction";
 import { FakeUnitOfWork } from "test/gateways/fake-unit-of-work";
+import { InMemoryJobScheduling } from "test/gateways/in-memory-job-scheduling";
 import { InMemoryBankAccountRepository } from "test/repositories/in-memory-bank-account.repository";
 import { InMemoryDebitExpenseTransactionRepository } from "test/repositories/in-memory-debit-expense-transaction.repository";
-import { InMemoryJobSchedulingService } from "test/services/in-memory-job-scheduling.service";
 import { beforeEach, describe, expect, it } from "vitest";
 import { DeleteDebitExpenseTransactionUseCase } from "./delete-debit-expense-transaction.use-case";
 
 let bankAccountRepository: InMemoryBankAccountRepository;
 let debitExpenseTransactionRepository: InMemoryDebitExpenseTransactionRepository;
 let unitOfWork: FakeUnitOfWork;
-let jobSchedulingService: InMemoryJobSchedulingService;
+let jobScheduling: InMemoryJobScheduling;
 
 let sut: DeleteDebitExpenseTransactionUseCase;
 
@@ -29,12 +29,12 @@ describe("[Use Case] Delete debit expense transaction", () => {
         bankAccountRepository,
       });
     unitOfWork = new FakeUnitOfWork();
-    jobSchedulingService = new InMemoryJobSchedulingService();
+    jobScheduling = new InMemoryJobScheduling();
 
     sut = new DeleteDebitExpenseTransactionUseCase({
       debitExpenseTransactionRepository,
       unitOfWork,
-      jobSchedulingService,
+      jobScheduling,
     });
 
     const initialBalance = faker.number.float({

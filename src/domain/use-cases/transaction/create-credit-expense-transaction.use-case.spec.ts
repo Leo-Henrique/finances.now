@@ -6,11 +6,11 @@ import { makeCreditCard } from "test/factories/make-credit-card";
 import { makeCreditExpenseTransaction } from "test/factories/make-credit-expense-transaction";
 import { makeTransactionCategory } from "test/factories/make-transaction-category";
 import { FakeUnitOfWork } from "test/gateways/fake-unit-of-work";
+import { InMemoryJobScheduling } from "test/gateways/in-memory-job-scheduling";
 import { InMemoryBankAccountRepository } from "test/repositories/in-memory-bank-account.repository";
 import { InMemoryCreditCardRepository } from "test/repositories/in-memory-credit-card.repository";
 import { InMemoryCreditExpenseTransactionRepository } from "test/repositories/in-memory-credit-expense-transaction.repository";
 import { InMemoryTransactionCategoryRepository } from "test/repositories/in-memory-transaction-category.repository";
-import { InMemoryJobSchedulingService } from "test/services/in-memory-job-scheduling.service";
 import { dayInMilliseconds } from "test/utils/day-in-milliseconds";
 import { beforeEach, describe, expect, it } from "vitest";
 import { CreateCreditExpenseTransactionUseCase } from "./create-credit-expense-transaction.use-case";
@@ -20,7 +20,7 @@ let bankAccountRepository: InMemoryBankAccountRepository;
 let creditCardRepository: InMemoryCreditCardRepository;
 let transactionCategoryRepository: InMemoryTransactionCategoryRepository;
 let creditExpenseTransactionRepository: InMemoryCreditExpenseTransactionRepository;
-let jobSchedulingService: InMemoryJobSchedulingService;
+let jobScheduling: InMemoryJobScheduling;
 let unitOfWork: FakeUnitOfWork;
 let createTransactionRecurrenceUseCase: CreateTransactionRecurrenceUseCase;
 
@@ -40,12 +40,12 @@ describe("[Use Case] Create credit expense transaction", () => {
     transactionCategoryRepository = new InMemoryTransactionCategoryRepository();
     creditExpenseTransactionRepository =
       new InMemoryCreditExpenseTransactionRepository({ creditCardRepository });
-    jobSchedulingService = new InMemoryJobSchedulingService();
+    jobScheduling = new InMemoryJobScheduling();
     unitOfWork = new FakeUnitOfWork();
     createTransactionRecurrenceUseCase = new CreateTransactionRecurrenceUseCase(
       {
         transactionRecurrenceRepository: creditExpenseTransactionRepository,
-        jobSchedulingService,
+        jobScheduling,
         unitOfWork,
       },
     );
@@ -54,7 +54,7 @@ describe("[Use Case] Create credit expense transaction", () => {
       creditCardRepository,
       transactionCategoryRepository,
       creditExpenseTransactionRepository,
-      jobSchedulingService,
+      jobScheduling,
       unitOfWork,
       createTransactionRecurrenceUseCase,
     });

@@ -14,7 +14,7 @@ export interface CreateRepeatableByPeriodOptions extends CreateJobOptions {
   limit?: number;
 }
 
-export interface JobSchedulingService {
+export interface JobScheduling {
   createUnique(
     work: Work,
     date: Date,

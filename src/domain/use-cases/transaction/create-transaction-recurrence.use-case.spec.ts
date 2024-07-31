@@ -1,19 +1,19 @@
 import { faker } from "@faker-js/faker";
 import { makeEarningTransaction } from "test/factories/make-earning-transaction";
 import { FakeUnitOfWork } from "test/gateways/fake-unit-of-work";
+import { InMemoryJobScheduling } from "test/gateways/in-memory-job-scheduling";
 import { InMemoryBankAccountRepository } from "test/repositories/in-memory-bank-account.repository";
 import {
   IN_MEMORY_COUNT_BATCH_EARNING_TRANSACTIONS_IN_RECURRENCE,
   InMemoryEarningTransactionRepository,
 } from "test/repositories/in-memory-earning-transaction.repository";
-import { InMemoryJobSchedulingService } from "test/services/in-memory-job-scheduling.service";
 import { millisecondsRemainingForDate } from "test/utils/milliseconds-remaining-for-date";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CreateTransactionRecurrenceUseCase } from "./create-transaction-recurrence.use-case";
 
 let bankAccountRepository: InMemoryBankAccountRepository;
 let earningTransactionRepository: InMemoryEarningTransactionRepository;
-let jobSchedulingService: InMemoryJobSchedulingService;
+let jobScheduling: InMemoryJobScheduling;
 let unitOfWork: FakeUnitOfWork;
 
 let sut: CreateTransactionRecurrenceUseCase;
@@ -23,12 +23,12 @@ describe("[Use Case] Create transaction recurrence", () => {
     earningTransactionRepository = new InMemoryEarningTransactionRepository({
       bankAccountRepository,
     });
-    jobSchedulingService = new InMemoryJobSchedulingService();
+    jobScheduling = new InMemoryJobScheduling();
     unitOfWork = new FakeUnitOfWork();
 
     sut = new CreateTransactionRecurrenceUseCase({
       transactionRecurrenceRepository: earningTransactionRepository,
-      jobSchedulingService,
+      jobScheduling,
       unitOfWork,
     });
 

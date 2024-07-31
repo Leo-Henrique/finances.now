@@ -5,10 +5,10 @@ import { makeBankAccount } from "test/factories/make-bank-account";
 import { makeCreditCard } from "test/factories/make-credit-card";
 import { makeCreditExpenseTransaction } from "test/factories/make-credit-expense-transaction";
 import { FakeUnitOfWork } from "test/gateways/fake-unit-of-work";
+import { InMemoryJobScheduling } from "test/gateways/in-memory-job-scheduling";
 import { InMemoryBankAccountRepository } from "test/repositories/in-memory-bank-account.repository";
 import { InMemoryCreditCardRepository } from "test/repositories/in-memory-credit-card.repository";
 import { InMemoryCreditExpenseTransactionRepository } from "test/repositories/in-memory-credit-expense-transaction.repository";
-import { InMemoryJobSchedulingService } from "test/services/in-memory-job-scheduling.service";
 import { beforeEach, describe, expect, it } from "vitest";
 import { DeleteCreditExpenseTransactionUseCase } from "./delete-credit-expense-transaction.use-case";
 
@@ -16,7 +16,7 @@ let bankAccountRepository: InMemoryBankAccountRepository;
 let creditCardRepository: InMemoryCreditCardRepository;
 let creditExpenseTransactionRepository: InMemoryCreditExpenseTransactionRepository;
 let unitOfWork: FakeUnitOfWork;
-let jobSchedulingService: InMemoryJobSchedulingService;
+let jobScheduling: InMemoryJobScheduling;
 
 let sut: DeleteCreditExpenseTransactionUseCase;
 
@@ -36,12 +36,12 @@ describe("[Use Case] Delete credit expense transaction", () => {
         creditCardRepository,
       });
     unitOfWork = new FakeUnitOfWork();
-    jobSchedulingService = new InMemoryJobSchedulingService();
+    jobScheduling = new InMemoryJobScheduling();
 
     sut = new DeleteCreditExpenseTransactionUseCase({
       creditExpenseTransactionRepository,
       unitOfWork,
-      jobSchedulingService,
+      jobScheduling,
     });
 
     userId = faker.string.uuid();

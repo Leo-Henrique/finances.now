@@ -6,8 +6,8 @@ import { makeTransferenceTransaction } from "test/factories/make-transference-tr
 import { FakeUnitOfWork } from "test/gateways/fake-unit-of-work";
 import { InMemoryBankAccountRepository } from "test/repositories/in-memory-bank-account.repository";
 
+import { InMemoryJobScheduling } from "test/gateways/in-memory-job-scheduling";
 import { InMemoryTransferenceTransactionRepository } from "test/repositories/in-memory-transference-transaction.repository";
-import { InMemoryJobSchedulingService } from "test/services/in-memory-job-scheduling.service";
 import { dayInMilliseconds } from "test/utils/day-in-milliseconds";
 import { beforeEach, describe, expect, it } from "vitest";
 import { CreateTransactionRecurrenceUseCase } from "./create-transaction-recurrence.use-case";
@@ -15,7 +15,7 @@ import { CreateTransferenceTransactionUseCase } from "./create-transference-tran
 
 let bankAccountRepository: InMemoryBankAccountRepository;
 let transferenceTransactionRepository: InMemoryTransferenceTransactionRepository;
-let jobSchedulingService: InMemoryJobSchedulingService;
+let jobScheduling: InMemoryJobScheduling;
 let unitOfWork: FakeUnitOfWork;
 let createTransactionRecurrenceUseCase: CreateTransactionRecurrenceUseCase;
 
@@ -31,11 +31,11 @@ describe("[Use Case] Create transference transaction", () => {
     bankAccountRepository = new InMemoryBankAccountRepository();
     transferenceTransactionRepository =
       new InMemoryTransferenceTransactionRepository({ bankAccountRepository });
-    jobSchedulingService = new InMemoryJobSchedulingService();
+    jobScheduling = new InMemoryJobScheduling();
     unitOfWork = new FakeUnitOfWork();
     createTransactionRecurrenceUseCase = new CreateTransactionRecurrenceUseCase(
       {
-        jobSchedulingService,
+        jobScheduling,
         transactionRecurrenceRepository: transferenceTransactionRepository,
         unitOfWork,
       },
@@ -44,7 +44,7 @@ describe("[Use Case] Create transference transaction", () => {
     sut = new CreateTransferenceTransactionUseCase({
       bankAccountRepository,
       transferenceTransactionRepository,
-      jobSchedulingService,
+      jobScheduling,
       unitOfWork,
       createTransactionRecurrenceUseCase,
     });

@@ -6,11 +6,11 @@ import { makeCreditCard } from "test/factories/make-credit-card";
 import { makeCreditExpenseTransaction } from "test/factories/make-credit-expense-transaction";
 import { makeTransactionCategory } from "test/factories/make-transaction-category";
 import { FakeUnitOfWork } from "test/gateways/fake-unit-of-work";
+import { InMemoryJobScheduling } from "test/gateways/in-memory-job-scheduling";
 import { InMemoryBankAccountRepository } from "test/repositories/in-memory-bank-account.repository";
 import { InMemoryCreditCardRepository } from "test/repositories/in-memory-credit-card.repository";
 import { InMemoryCreditExpenseTransactionRepository } from "test/repositories/in-memory-credit-expense-transaction.repository";
 import { InMemoryTransactionCategoryRepository } from "test/repositories/in-memory-transaction-category.repository";
-import { InMemoryJobSchedulingService } from "test/services/in-memory-job-scheduling.service";
 import { beforeEach, describe, expect, it } from "vitest";
 import { CreateTransactionRecurrenceUseCase } from "./create-transaction-recurrence.use-case";
 import {
@@ -23,7 +23,7 @@ let creditCardRepository: InMemoryCreditCardRepository;
 let transactionCategoryRepository: InMemoryTransactionCategoryRepository;
 let creditExpenseTransactionRepository: InMemoryCreditExpenseTransactionRepository;
 let unitOfWork: FakeUnitOfWork;
-let jobSchedulingService: InMemoryJobSchedulingService;
+let jobScheduling: InMemoryJobScheduling;
 let createTransactionRecurrenceUseCase: CreateTransactionRecurrenceUseCase;
 
 let sut: UpdateCreditExpenseTransactionUseCase;
@@ -44,10 +44,10 @@ describe("[Use Case] Update credit expense transaction", () => {
     creditExpenseTransactionRepository =
       new InMemoryCreditExpenseTransactionRepository({ creditCardRepository });
     unitOfWork = new FakeUnitOfWork();
-    jobSchedulingService = new InMemoryJobSchedulingService();
+    jobScheduling = new InMemoryJobScheduling();
     createTransactionRecurrenceUseCase = new CreateTransactionRecurrenceUseCase(
       {
-        jobSchedulingService,
+        jobScheduling,
         transactionRecurrenceRepository: creditExpenseTransactionRepository,
         unitOfWork,
       },
