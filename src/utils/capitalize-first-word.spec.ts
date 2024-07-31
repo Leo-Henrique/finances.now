@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { capitalizeFirstWord } from "./capitalize-text";
+import { capitalizeFirstWord } from "./capitalize-first-word";
 
 const text = "lorem Ipsum is simply dummy text.";
 const capitalizedText = "Lorem Ipsum is simply dummy text.";

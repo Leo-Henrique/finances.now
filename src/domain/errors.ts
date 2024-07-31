@@ -1,5 +1,5 @@
 import { DomainError } from "@/core/errors/domain-error";
-import { capitalizeFirstWord } from "@/utils/capitalize-text";
+import { capitalizeFirstWord } from "@/utils/capitalize-first-word";
 
 type Resources =
   | "usuário"
