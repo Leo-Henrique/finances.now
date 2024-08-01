@@ -56,11 +56,7 @@ describe("[Use Case] Update debit expense transaction", () => {
       createTransactionRecurrenceUseCase,
     });
 
-    const initialBalance = faker.number.float({
-      min: 1,
-      max: 1000,
-      fractionDigits: 2,
-    });
+    const initialBalance = +faker.finance.amount({ dec: 0 });
 
     userId = faker.string.uuid();
     bankAccount = makeBankAccount({ userId, balance: initialBalance });
@@ -92,7 +88,7 @@ describe("[Use Case] Update debit expense transaction", () => {
 
     const now = new Date();
     const updatedData = {
-      amount: faker.number.float({ min: 1, max: 1000, fractionDigits: 2 }),
+      amount: +faker.finance.amount({ dec: 0 }),
       description: faker.lorem.sentences().substring(1, 255).trim(),
       transactedAt: new Date(now.getFullYear(), now.getMonth(), now.getDate()),
     } satisfies UpdateDebitExpenseTransactionUseCaseInput["data"];
@@ -130,11 +126,7 @@ describe("[Use Case] Update debit expense transaction", () => {
 
     const oldBalance = bankAccountRepository.items[0].balance;
     const oldAmount = debitExpenseTransactionRepository.items[0].amount;
-    const newAmount = faker.number.float({
-      min: 1,
-      max: 1000,
-      fractionDigits: 2,
-    });
+    const newAmount = +faker.finance.amount({ dec: 0 });
 
     const { isRight } = await sut.execute<"success">({
       userId,
@@ -183,7 +175,7 @@ describe("[Use Case] Update debit expense transaction", () => {
     const { isLeft, reason } = await sut.execute<"error">({
       userId,
       debitExpenseTransactionId: faker.string.uuid(),
-      data: { amount: faker.number.float() },
+      data: { amount: +faker.finance.amount({ dec: 0 }) },
     });
 
     expect(isLeft()).toBeTruthy();
@@ -194,7 +186,7 @@ describe("[Use Case] Update debit expense transaction", () => {
     const { isLeft, reason } = await sut.execute<"error">({
       userId: faker.string.uuid(),
       debitExpenseTransactionId: debitExpenseTransaction.entity.id.value,
-      data: { amount: faker.number.float() },
+      data: { amount: +faker.finance.amount({ dec: 0 }) },
     });
 
     expect(isLeft()).toBeTruthy();
@@ -305,7 +297,7 @@ describe("[Use Case] Update debit expense transaction", () => {
       const updatedData = {
         categoryId: newTransactionCategory.entity.id.value,
         description: faker.lorem.sentences().substring(1, 255).trim(),
-        amount: faker.number.float({ min: 1, max: 1000, fractionDigits: 2 }),
+        amount: +faker.finance.amount({ dec: 0 }),
       } satisfies UpdateDebitExpenseTransactionUseCaseInput["data"];
 
       const { isRight } = await sut.execute<"success">({
@@ -498,7 +490,7 @@ describe("[Use Case] Update debit expense transaction", () => {
         debitExpenseTransactionId: debitExpenseTransaction.entity.id.value,
         recurrence: "accomplished",
         data: {
-          amount: faker.number.float(),
+          amount: +faker.finance.amount({ dec: 0 }),
         },
       });
 
@@ -510,7 +502,7 @@ describe("[Use Case] Update debit expense transaction", () => {
         debitExpenseTransactionId: debitExpenseTransaction.entity.id.value,
         recurrence: "all",
         data: {
-          amount: faker.number.float(),
+          amount: +faker.finance.amount({ dec: 0 }),
         },
       });
 

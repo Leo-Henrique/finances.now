@@ -19,7 +19,7 @@ export function makeEarningTransaction({
     bankAccountId,
     categoryId,
     transactedAt: faker.date.recent(),
-    amount: faker.number.float({ min: 1, max: 1000, fractionDigits: 2 }),
+    amount: +faker.finance.amount({ dec: 0 }),
     description: faker.lorem.sentences().substring(1, 255),
     ...override,
   } satisfies EarningTransactionDataCreate;

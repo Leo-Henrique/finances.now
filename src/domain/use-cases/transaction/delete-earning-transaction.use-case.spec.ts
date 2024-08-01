@@ -36,11 +36,7 @@ describe("[Use Case] Delete earning transaction", () => {
       jobScheduling,
     });
 
-    const initialBalance = faker.number.float({
-      min: 1,
-      max: 1000,
-      fractionDigits: 2,
-    });
+    const initialBalance = +faker.finance.amount({ dec: 0 });
 
     userId = faker.string.uuid();
     bankAccount = makeBankAccount({ userId, balance: initialBalance });

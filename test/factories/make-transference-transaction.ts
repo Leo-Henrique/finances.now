@@ -18,7 +18,7 @@ export function makeTransferenceTransaction({
   const input = {
     originBankAccountId,
     destinyBankAccountId,
-    amount: faker.number.float({ min: 1, fractionDigits: 2 }),
+    amount: +faker.finance.amount({ dec: 0 }),
     description: faker.lorem.sentences().substring(1, 255),
     transactedAt: faker.date.recent(),
     ...override,
