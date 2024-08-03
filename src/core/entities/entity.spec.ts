@@ -18,67 +18,67 @@ type FakeUser = EntityInstance<sut>;
 
 type FakeUserEntityCreate = EntityDataCreate<sut>;
 
-class sut extends Entity implements EntityDefinition<sut> {
+class sut extends Entity {
   defineId() {
-    return {
+    return this.createField({
       schema: z.instanceof(UniqueEntityId),
       default: new UniqueEntityId(),
       static: true,
       readonly: true,
-    };
+    });
   }
 
   defineFirstName() {
-    return {
+    return this.createField({
       schema: z.string().optional(),
-    };
+    });
   }
 
   defineLastName() {
-    return {
+    return this.createField({
       schema: z.string().nullable(),
       default: null,
-    };
+    });
   }
 
   defineFullName() {
-    return {
+    return this.createField({
       schema: z.string(),
-    };
+    });
   }
 
   defineEmail() {
-    return {
+    return this.createField({
       schema: z.string().email(),
       readonly: true,
-    };
+    });
   }
 
   definePassword() {
-    return {
+    return this.createField({
       schema: z.number(),
       default: 123,
       transform: (val: number) => val.toString(),
-    };
+    });
   }
 
   defineAge() {
-    return {
+    return this.createField({
       schema: z.union([z.number(), z.undefined()]),
       default: 18,
       transform: (val: number | undefined) => {
         if (typeof val === "number") return val.toFixed(2);
       },
-    };
+    });
   }
 
   defineUpdatedAt() {
-    return {
+    return this.createField({
       schema: z.date().nullable(),
       default: null,
       static: true,
       readonly: true,
-    };
+    });
   }
 
   public static get baseSchema() {
@@ -124,23 +124,23 @@ describe("[Core] Domain Entity", () => {
 
     it("should be able to create an entity with fields inherited from sub classes", () => {
       const defaultHeight = faker.number.int();
-      class AnotherFakeUserEntity
-        extends sut
-        implements EntityDefinition<AnotherFakeUserEntity>
-      {
+      class AnotherFakeUserEntity extends sut {
         static create(input: EntityDataCreate<AnotherFakeUserEntity>) {
           return new this().createEntity(input);
         }
 
         defineFirstName() {
-          return {
+          return this.createField({
             ...super.defineFirstName(),
             transform: (val: string | undefined) => val + "_transformed",
-          };
+          });
         }
 
         defineHeight() {
-          return { schema: z.number(), default: defaultHeight };
+          return this.createField({
+            schema: z.number(),
+            default: defaultHeight,
+          });
         }
       }
 

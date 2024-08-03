@@ -9,6 +9,9 @@ import {
   EntityDataZodShape,
   EntityInstance,
   EntityUnknownDefinition,
+  ExtractFieldDefinitionInput,
+  ExtractFieldDefinitionOutput,
+  FieldDefinition,
 } from "../@types/entity";
 import { UniqueEntityId } from "./unique-entity-id";
 
@@ -168,6 +171,161 @@ export abstract class Entity {
       },
       events,
     };
+  }
+
+  /**
+   * Utility to define field definition. Used only for intellisense.
+   *
+   * @param params - Options for definition field.
+   */
+  protected createField<
+    T extends FieldDefinition<
+      ExtractFieldDefinitionInput<T>,
+      ExtractFieldDefinitionOutput<T>
+    >,
+  >(
+    params: {
+      /**
+       * A Zod schema that defines the type and/or restrictions on the field.
+       *
+       * By default, types are considered in:
+       * - ```EntityInstance```
+       * - ```EntityData```
+       * - ```EntityDataCreate```
+       * - ```EntityDataUpdate```
+       * - ```EntityDataUpdated```
+       *
+       * By default, the schema is considered in:
+       * - ```baseSchema```
+       * - ```createSchema```
+       * - ```updateSchema```
+       *
+       * @example
+       * ```
+       * defineName() {
+       *    return this.createField({
+       *      schema: z.string(),
+       *    });
+       * })
+       * ```
+       */
+      schema: T["schema"];
+      /**
+       * A value used as default when creating the entity with ```ExampleEntity.create()``` if no explicit value is provided.
+       *
+       * The type must respect the zod schema type of the ```schema``` field.
+       *
+       * @example
+       * ```
+       * defineName() {
+       *    return this.createField({
+       *      schema: z.string().nullable(),
+       *      default: null,
+       *    });
+       * })
+       * ```
+       */
+      default?: T["default"];
+      /**
+       * A function executed when creating or updating the corresponding field that transforms the received value with the value returned from the function.
+       *
+       * @param value - The value passed when creating or updating the field (the type must respect the zod schema type of the ```schema``` field).
+       *
+       * @returns The new value that will be considered for the field. The returned type is now considered in:
+       * - ```EntityInstance```
+       * - ```EntityData```
+       * - ```EntityDataUpdated```
+       *
+       * @example
+       * ```
+       * defineId() {
+       *    return this.createField({
+       *      schema: z.string(),
+       *      transform: (value: string) => new UniqueEntityId(value);
+       *    });
+       * })
+       * ```
+       */
+      transform?: T["transform"];
+      /**
+       * Defines a field that cannot be created.
+       *
+       * A static field implies:
+       *
+       * - Disregard the ```EntityDataCreate``` field types
+       * - Disregard the ```createSchema``` schema field
+       *
+       * @default false
+       *
+       * @example
+       * ```
+       * defineId() {
+       *    return this.createField({
+       *      schema: z.string(),
+       *      static: true
+       *    });
+       * }
+       * ```
+       */
+      static?: T["static"];
+      /**
+       * Defines a field that cannot be updated.
+       *
+       * A readonly field implies:
+       *
+       * - Disregard the ```EntityDataUpdate``` and ```EntityDataUpdated``` field types
+       * - Disregard the ```updateSchema``` schema field
+       * - Do not allow updating the field with ```ExampleEntity.update()```
+       *
+       * @default false
+       *
+       * @example
+       * ```
+       * defineId() {
+       *    return {
+       *      schema: z.string(),
+       *      static: true
+       *    } satisfies FieldDefinition<string>;
+       * }
+       * ```
+       */
+      readonly?: T["readonly"];
+      /**
+       * A function that is always executed after the field is created or updated.
+       *
+       * It also fires when the field was not defined when creating the entity, but it has the ```default``` field.
+       *
+       * Useful for updating another fields that depend on the field that ```onDefinition``` was used for.
+       *
+       * @example
+       * ```
+       * export class UserEntity extends Entity {
+       *   defineSlug() {
+       *     return this.createField({
+       *       schema: z.string(),
+       *       transform: (value: string) => new Slug(value),
+       *       static: true,
+       *       readonly: true,
+       *     });
+       *   }
+       *
+       *   defineName() {
+       *     return this.createField({
+       *       schema: z.string(),
+       *       onDefinition: () => {
+       *         const { name } = this.getData<UserEntity>();
+       *
+       *         this.earlyUpdate<UserEntity>({ slug: name });
+       *       },
+       *     });
+       *   }
+       * }
+       * ```
+       */
+      onDefinition?: () => void;
+    } & T,
+  ): T {
+    return params;
   }
 
   protected createEntity(input: EntityDataCreate<this>) {

@@ -3,7 +3,6 @@ import {
   EntityDataCreate,
   EntityDataUpdate,
   EntityDataUpdated,
-  EntityDefinition,
   EntityInstance,
 } from "@/core/@types/entity";
 import { UniqueEntityId } from "@/core/entities/unique-entity-id";
@@ -24,15 +23,12 @@ export type DebitExpenseTransactionDataUpdate =
 export type DebitExpenseTransactionDataUpdated =
   EntityDataUpdated<DebitExpenseTransactionEntity>;
 
-export class DebitExpenseTransactionEntity
-  extends ExpenseTransactionEntity
-  implements EntityDefinition<DebitExpenseTransactionEntity>
-{
+export class DebitExpenseTransactionEntity extends ExpenseTransactionEntity {
   defineBankAccountId() {
-    return {
+    return this.createField({
       schema: UniqueEntityId.schema,
       transform: (val: string) => new UniqueEntityId(val),
-    };
+    });
   }
 
   public static create(input: DebitExpenseTransactionDataCreate) {

@@ -3,7 +3,6 @@ import {
   EntityDataCreate,
   EntityDataUpdate,
   EntityDataUpdated,
-  EntityDefinition,
   EntityInstance,
 } from "@/core/@types/entity";
 import { Entity } from "@/core/entities/entity";
@@ -24,21 +23,18 @@ export type TransactionCategoryDataUpdate =
 export type TransactionCategoryDataUpdated =
   EntityDataUpdated<TransactionCategoryEntity>;
 
-export class TransactionCategoryEntity
-  extends Entity
-  implements EntityDefinition<TransactionCategoryEntity>
-{
+export class TransactionCategoryEntity extends Entity {
   defineId() {
-    return {
+    return this.createField({
       schema: z.instanceof(UniqueEntityId),
       default: new UniqueEntityId(),
       static: true,
       readonly: true,
-    };
+    });
   }
 
   defineUserId() {
-    return {
+    return this.createField({
       schema: UniqueEntityId.schema.nullable(),
       default: null,
       transform: (val: string | null) => {
@@ -46,21 +42,21 @@ export class TransactionCategoryEntity
 
         return null;
       },
-    };
+    });
   }
 
   defineIsInExpense() {
-    return {
+    return this.createField({
       schema: z.boolean(),
       readonly: true,
-    };
+    });
   }
 
   defineName() {
-    return {
+    return this.createField({
       schema: Name.schema,
       transform: (val: string) => new Name(val),
-    };
+    });
   }
 
   get isDefault() {

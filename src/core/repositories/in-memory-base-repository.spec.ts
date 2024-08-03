@@ -4,7 +4,6 @@ import { z } from "zod";
 import {
   EntityDataCreate,
   EntityDataUpdated,
-  EntityDefinition,
   EntityInstance,
 } from "../@types/entity";
 import { Entity } from "../entities/entity";
@@ -17,25 +16,30 @@ export type FakeUserDataCreate = EntityDataCreate<FakeUserEntity>;
 
 export type FakeUserDataUpdated = EntityDataUpdated<FakeUserEntity>;
 
-class FakeUserEntity
-  extends Entity
-  implements EntityDefinition<FakeUserEntity>
-{
+class FakeUserEntity extends Entity {
   defineId() {
-    return {
+    return this.createField({
       schema: z.instanceof(UniqueEntityId),
       default: new UniqueEntityId(),
       static: true,
       readonly: true,
-    };
+    });
   }
 
   defineFirstName() {
-    return { schema: z.string() };
+    return this.createField({
+      schema: z.string(),
+    });
   }
 
   defineLastName() {
-    return { schema: z.string().optional() };
+    return this.createField({
+      schema: z.string().optional(),
+    });
+  }
+
+  public static create(input: FakeUserDataCreate) {
+    return new this().createEntity(input);
   }
 
   public static get createSchema() {
@@ -44,10 +48,6 @@ class FakeUserEntity
 
   public static get updateSchema() {
     return new this().updateSchema;
-  }
-
-  public static create(input: FakeUserDataCreate) {
-    return new this().createEntity(input);
   }
 }
 

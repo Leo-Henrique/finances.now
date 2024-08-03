@@ -3,7 +3,6 @@ import {
   EntityDataCreate,
   EntityDataUpdate,
   EntityDataUpdated,
-  EntityDefinition,
   EntityInstance,
 } from "@/core/@types/entity";
 import { BaseEntity } from "@/core/entities/base-entity";
@@ -21,26 +20,32 @@ export type UserDataUpdate = EntityDataUpdate<UserEntity>;
 
 export type UserDataUpdated = EntityDataUpdated<UserEntity>;
 
-export class UserEntity
-  extends BaseEntity
-  implements EntityDefinition<UserEntity>
-{
+export class UserEntity extends BaseEntity {
   defineName() {
-    return {
+    return this.createField({
       schema: Name.schema,
       transform: (val: string) => new Name(val),
-    };
+    });
   }
 
   defineEmail() {
-    return { schema: z.string().email() };
+    return this.createField({
+      schema: z.string().email(),
+    });
   }
 
   definePassword() {
-    return {
+    return this.createField({
       schema: Password.schema,
       transform: (val: string) => new Password(val),
-    };
+    });
+  }
+
+  defineActivatedAt() {
+    return this.createField({
+      schema: z.date().nullable(),
+      default: null,
+    });
   }
 
   get serialized() {

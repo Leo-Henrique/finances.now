@@ -3,7 +3,6 @@ import {
   EntityDataCreate,
   EntityDataUpdate,
   EntityDataUpdated,
-  EntityDefinition,
   EntityInstance,
 } from "@/core/@types/entity";
 import { BaseEntity } from "@/core/entities/base-entity";
@@ -22,27 +21,24 @@ export type CreditCardDataUpdate = EntityDataUpdate<CreditCardEntity>;
 
 export type CreditCardDataUpdated = EntityDataUpdated<CreditCardEntity>;
 
-export class CreditCardEntity
-  extends BaseEntity
-  implements EntityDefinition<CreditCardEntity>
-{
+export class CreditCardEntity extends BaseEntity {
   defineBankAccountId() {
-    return {
+    return this.createField({
       schema: UniqueEntityId.schema,
       transform: (val: string) => new UniqueEntityId(val),
-    };
+    });
   }
 
   defineSlug() {
-    return {
+    return this.createField({
       schema: Slug.schema,
       transform: (val: string) => new Slug(val),
       static: true,
-    };
+    });
   }
 
   defineName() {
-    return {
+    return this.createField({
       schema: Name.schema,
       transform: (val: string) => new Name(val),
       onDefinition: () => {
@@ -50,47 +46,47 @@ export class CreditCardEntity
 
         this.earlyUpdate<CreditCardEntity>({ slug: name.value });
       },
-    };
+    });
   }
 
   defineDescription() {
-    return {
+    return this.createField({
       schema: z.string().max(255).trim().nullable(),
       default: null,
-    };
+    });
   }
 
   defineLimit() {
-    return {
+    return this.createField({
       schema: z.number().positive(),
-    };
+    });
   }
 
   defineInvoiceClosingDay() {
-    return {
+    return this.createField({
       schema: z.number().positive().int().max(31),
-    };
+    });
   }
 
   defineInvoiceDueDay() {
-    return {
+    return this.createField({
       schema: z.number().positive().int().max(31),
-    };
+    });
   }
 
   defineMainCard() {
-    return {
+    return this.createField({
       schema: z.boolean(),
       default: false,
-    };
+    });
   }
 
   defineInactivatedAt() {
-    return {
+    return this.createField({
       schema: z.date().nullable(),
       default: null,
       static: true,
-    };
+    });
   }
 
   public static create(input: CreditCardDataCreate) {

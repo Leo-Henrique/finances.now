@@ -3,7 +3,6 @@ import {
   EntityDataCreate,
   EntityDataUpdate,
   EntityDataUpdated,
-  EntityDefinition,
   EntityInstance,
 } from "@/core/@types/entity";
 import { BaseEntity } from "@/core/entities/base-entity";
@@ -22,28 +21,25 @@ export type BankAccountDataUpdate = EntityDataUpdate<BankAccountEntity>;
 
 export type BankAccountDataUpdated = EntityDataUpdated<BankAccountEntity>;
 
-export class BankAccountEntity
-  extends BaseEntity
-  implements EntityDefinition<BankAccountEntity>
-{
+export class BankAccountEntity extends BaseEntity {
   defineUserId() {
-    return {
+    return this.createField({
       schema: UniqueEntityId.schema,
       transform: (val: string) => new UniqueEntityId(val),
       readonly: true,
-    };
+    });
   }
 
   defineSlug() {
-    return {
+    return this.createField({
       schema: Slug.schema,
       transform: (val: string) => new Slug(val),
       static: true,
-    };
+    });
   }
 
   defineInstitution() {
-    return {
+    return this.createField({
       schema: Name.schema,
       transform: (val: string) => new Name(val),
       onDefinition: () => {
@@ -51,36 +47,36 @@ export class BankAccountEntity
 
         this.earlyUpdate<BankAccountEntity>({ slug: institution.value });
       },
-    };
+    });
   }
 
   defineDescription() {
-    return {
+    return this.createField({
       schema: z.string().max(255).trim().nullable(),
       default: null,
-    };
+    });
   }
 
   defineBalance() {
-    return {
+    return this.createField({
       schema: z.union([z.number().positive(), z.literal(0)]),
       default: 0,
-    };
+    });
   }
 
   defineMainAccount() {
-    return {
+    return this.createField({
       schema: z.boolean(),
       default: false,
-    };
+    });
   }
 
   defineInactivatedAt() {
-    return {
+    return this.createField({
       schema: z.date().nullable(),
       default: null,
       static: true,
-    };
+    });
   }
 
   public static create(input: BankAccountDataCreate) {

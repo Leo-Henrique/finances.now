@@ -3,7 +3,6 @@ import {
   EntityDataCreate,
   EntityDataUpdate,
   EntityDataUpdated,
-  EntityDefinition,
   EntityInstance,
 } from "@/core/@types/entity";
 import { BaseEntity } from "@/core/entities/base-entity";
@@ -20,50 +19,47 @@ export type TransactionDataUpdate = EntityDataUpdate<TransactionEntity>;
 
 export type TransactionDataUpdated = EntityDataUpdated<TransactionEntity>;
 
-export abstract class TransactionEntity
-  extends BaseEntity
-  implements EntityDefinition<TransactionEntity>
-{
+export abstract class TransactionEntity extends BaseEntity {
   defineOriginId() {
-    return {
+    return this.createField({
       schema: z.instanceof(UniqueEntityId).nullable(),
       default: null,
       readonly: true,
-    };
+    });
   }
 
   defineTransactedAt() {
-    return {
+    return this.createField({
       schema: z.date(),
       transform: (val: Date) => {
         return new Date(val.getFullYear(), val.getMonth(), val.getDate());
       },
-    };
+    });
   }
 
   defineIsAccomplished() {
-    return {
+    return this.createField({
       schema: z.boolean(),
       default: false,
-    };
+    });
   }
 
   defineAmount() {
-    return {
+    return this.createField({
       schema: z.number().positive(),
-    };
+    });
   }
 
   defineRecurrencePeriod() {
-    return {
+    return this.createField({
       schema: z.enum(["day", "week", "month", "year"]).nullable(),
       default: null,
       readonly: true,
-    };
+    });
   }
 
   defineRecurrenceAmount() {
-    return {
+    return this.createField({
       schema: z.number().int().positive().nullable(),
       default: null,
       readonly: true,
@@ -74,20 +70,20 @@ export abstract class TransactionEntity
         if (recurrencePeriod && !recurrenceAmount)
           this.earlyUpdate<TransactionEntity>({ recurrenceAmount: 1 });
       },
-    };
+    });
   }
 
   defineRecurrenceLimit() {
-    return {
+    return this.createField({
       schema: z.number().int().positive().nullable(),
       default: null,
       readonly: true,
-    };
+    });
   }
 
   defineDescription() {
-    return {
+    return this.createField({
       schema: z.string().max(255).trim(),
-    };
+    });
   }
 }

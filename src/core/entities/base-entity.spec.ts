@@ -1,20 +1,24 @@
 import { faker } from "@faker-js/faker";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { EntityDefinition } from "../@types/entity";
 import { EntityDataCreate } from "../@types/entity/entity-data-create";
 import { BaseEntity } from "./base-entity";
 import { UniqueEntityId } from "./unique-entity-id";
 
 type FakeUserCreate = EntityDataCreate<sut>;
 
-class sut extends BaseEntity implements EntityDefinition<sut> {
+class sut extends BaseEntity {
   defineFirstName() {
-    return { schema: z.string() };
+    return this.createField({
+      schema: z.string(),
+    });
   }
 
   defineEmail() {
-    return { schema: z.string().email(), readonly: true };
+    return this.createField({
+      schema: z.string().email(),
+      readonly: true,
+    });
   }
 
   public static get createSchema() {
