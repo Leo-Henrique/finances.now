@@ -1,13 +1,6 @@
 import { z } from "zod";
-import {
-  Either,
-  EitherReason,
-  EitherResult,
-  ExpectedResultOfEither,
-  InferResultOfEither,
-  left,
-  right,
-} from "./either";
+import { ExpectedResultOfEither, InferEither } from "./@types/either";
+import { Either, EitherReason, EitherResult, left, right } from "./either";
 import { ValidationError } from "./errors/errors";
 
 type UseCaseInputSchema<Input> =
@@ -21,7 +14,7 @@ type UseCaseInputSchema<Input> =
     >;
 
 export abstract class UseCase<
-  Input,
+  Input extends object | null,
   Output extends Either<EitherReason, EitherResult>,
   Dependencies extends object | undefined = undefined,
 > {
@@ -43,10 +36,7 @@ export abstract class UseCase<
     schema: NonNullable<typeof this.inputSchema>,
     input: Input,
   ) {
-    type Result = InferResultOfEither<
-      Either<ValidationError, Input>,
-      ExpectedResult
-    >;
+    type Result = InferEither<Either<ValidationError, Input>, ExpectedResult>;
 
     const parsedInput = schema.safeParse(input);
 
@@ -62,7 +52,7 @@ export abstract class UseCase<
   protected abstract handle(input: Input): Promise<Output>;
 
   public async execute<Expected extends ExpectedResultOfEither>(input: Input) {
-    type Result = InferResultOfEither<Output, Expected>;
+    type Result = InferEither<Output, Expected>;
 
     let validInput: Input = input;
 

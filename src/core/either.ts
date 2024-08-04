@@ -4,24 +4,9 @@ export type EitherReason = DomainError | null;
 
 export type EitherResult = object | null;
 
-export type Either<Reason, Result> = Left<Reason> | Right<Result>;
-
-export type ExtractError<Either> =
-  Either extends Left<infer L> ? Left<L> : never;
-
-export type ExtractSuccess<Either> =
-  Either extends Right<infer R> ? Right<R> : never;
-
-export type ExpectedResultOfEither = "unknown" | "success" | "error";
-
-export type InferResultOfEither<
-  Either,
-  Expected extends ExpectedResultOfEither,
-> = Expected extends "unknown"
-  ? Either
-  : Expected extends "success"
-    ? ExtractSuccess<Either>
-    : ExtractError<Either>;
+export type Either<Reason extends EitherReason, Result extends EitherResult> =
+  | Left<Reason>
+  | Right<Result>;
 
 export class Left<Reason> {
   constructor(public readonly reason: Reason) {}

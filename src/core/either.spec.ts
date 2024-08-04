@@ -1,13 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-  Either,
-  ExtractError,
-  ExtractSuccess,
-  Left,
-  Right,
-  left,
-  right,
-} from "./either";
+import { InferLeft, InferRight } from "./@types/either";
+import { Either, Left, Right, left, right } from "./either";
 import { DomainError } from "./errors/domain-error";
 
 class FakeError extends DomainError {
@@ -27,7 +20,7 @@ function sut(success: boolean): Response {
 
 describe("[Core] Either", () => {
   it("should be able to return error on left flow", () => {
-    const result = sut(false) as ExtractError<Response>;
+    const result = sut(false) as InferLeft<Response>;
 
     expect(result).toBeInstanceOf(Left);
     expect(result.isLeft()).toBeTruthy();
@@ -36,7 +29,7 @@ describe("[Core] Either", () => {
   });
 
   it("should be able to return success on right flow", () => {
-    const result = sut(true) as ExtractSuccess<Response>;
+    const result = sut(true) as InferRight<Response>;
 
     expect(result).toBeInstanceOf(Right);
     expect(result.isRight()).toBeTruthy();
