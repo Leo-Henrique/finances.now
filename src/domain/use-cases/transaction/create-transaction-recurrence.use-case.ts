@@ -2,7 +2,6 @@ import { Either, right } from "@/core/either";
 import { UnitOfWork } from "@/core/unit-of-work";
 import { UseCase } from "@/core/use-case";
 import { Transaction } from "@/domain/entities/transaction.entity";
-import { ResourceNotFoundError } from "@/domain/errors";
 import { JobScheduling } from "@/domain/gateways/job-scheduling";
 import { TransactionRepository } from "@/domain/repositories/transaction.repository";
 
@@ -12,10 +11,7 @@ type CreateTransactionRecurrenceUseCaseInput = {
   update?: boolean;
 };
 
-export type CreateTransactionRecurrenceUseCaseOutput = Either<
-  ResourceNotFoundError,
-  null
->;
+export type CreateTransactionRecurrenceUseCaseOutput = Either<null, null>;
 
 type CreateTransactionRecurrenceUseCaseDeps = {
   transactionRecurrenceRepository: TransactionRepository;
