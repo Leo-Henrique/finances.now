@@ -3,7 +3,7 @@ import { UniqueEntityId } from "@/core/entities/unique-entity-id";
 import { UseCase } from "@/core/use-case";
 import { UserEntity } from "@/domain/entities/user.entity";
 import { ResourceNotFoundError, UnauthorizedError } from "@/domain/errors";
-import { PasswordHasher } from "@/domain/gateways/password-hasher";
+import { PasswordHasher } from "@/domain/gateways/auth/password-hasher";
 import { UserRepository } from "@/domain/repositories/user.repository";
 import { z } from "zod";
 

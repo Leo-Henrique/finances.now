@@ -4,21 +4,50 @@ import { Password } from "@/domain/entities/value-objects/password";
 import { ResourceAlreadyExistsError } from "@/domain/errors";
 import { faker } from "@faker-js/faker";
 import { makeUser } from "test/factories/make-user";
-import { FakePasswordHasher } from "test/gateways/fake-password-hasher";
+import { FakeEncryption } from "test/gateways/auth/fake-encryption";
+import { FakePasswordHasher } from "test/gateways/auth/fake-password-hasher";
+import { FakeEmailDispatcher } from "test/gateways/fake-email-dispatcher";
+import { FakeUnitOfWork } from "test/gateways/fake-unit-of-work";
+import { InMemoryAccountActivationTokenRepository } from "test/repositories/in-memory-account-activation-token.repository";
 import { InMemoryUserRepository } from "test/repositories/in-memory-user.repository";
 import { beforeEach, describe, expect, it } from "vitest";
 import { RegisterUserUseCase } from "./register-user.use-case";
+import { RequestAccountActivationUseCase } from "./request-account-activation.use-case";
 
 let userRepository: InMemoryUserRepository;
 let passwordHasher: FakePasswordHasher;
+let unitOfWork: FakeUnitOfWork;
+let accountActivationTokenRepository: InMemoryAccountActivationTokenRepository;
+let encryption: FakeEncryption;
+let emailDispatcher: FakeEmailDispatcher;
+let requestAccountActivationUseCase: RequestAccountActivationUseCase;
+
 let sut: RegisterUserUseCase;
+
 let user: ReturnType<typeof makeUser>;
 
 describe("[Use Case] Register user", () => {
   beforeEach(() => {
     userRepository = new InMemoryUserRepository();
     passwordHasher = new FakePasswordHasher();
-    sut = new RegisterUserUseCase({ userRepository, passwordHasher });
+    unitOfWork = new FakeUnitOfWork();
+    accountActivationTokenRepository =
+      new InMemoryAccountActivationTokenRepository({ userRepository });
+    encryption = new FakeEncryption();
+    emailDispatcher = new FakeEmailDispatcher();
+    requestAccountActivationUseCase = new RequestAccountActivationUseCase({
+      accountActivationTokenRepository,
+      encryption,
+      emailDispatcher,
+    });
+
+    sut = new RegisterUserUseCase({
+      userRepository,
+      passwordHasher,
+      unitOfWork,
+      requestAccountActivationUseCase,
+    });
+
     user = makeUser();
   });
 

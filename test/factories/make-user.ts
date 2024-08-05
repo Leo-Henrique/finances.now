@@ -8,6 +8,7 @@ export function makeUser(override: MakeUserInput = {}) {
     name: faker.person.fullName(),
     email: faker.internet.email(),
     password: faker.internet.password(),
+    activatedAt: faker.date.recent(),
     ...override,
   } satisfies UserDataCreate;
   const entity = UserEntity.create(input);
