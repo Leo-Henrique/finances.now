@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { ExpectedResultOfEither, InferEither } from "./@types/either";
+import {
+  ExpectedResultOfEither,
+  InferEither,
+  InferRightResult,
+} from "./@types/either";
 import { Either, EitherReason, EitherResult, left, right } from "./either";
 import { ValidationError } from "./errors/errors";
 
@@ -65,5 +69,15 @@ export abstract class UseCase<
     }
 
     return (await this.handle(validInput)) as Result;
+  }
+
+  public async unsafeExecute(input: Input) {
+    type Result = InferRightResult<Output>;
+
+    const useCase = await this.handle(input);
+
+    if (useCase.isLeft()) throw useCase.reason;
+
+    return useCase.result as Result;
   }
 }

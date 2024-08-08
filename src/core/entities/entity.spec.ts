@@ -9,6 +9,7 @@ import {
 } from "../@types/entity";
 import {
   EntityDataCreate,
+  EntityDataCreateReference,
   EntityDataCreateZodShape,
 } from "../@types/entity/entity-data-create";
 import { Entity } from "./entity";
@@ -18,11 +19,14 @@ type FakeUser = EntityInstance<sut>;
 
 type FakeUserEntityCreate = EntityDataCreate<sut>;
 
+type FakeUserEntityCreateReference = EntityDataCreateReference<sut>;
+
 class sut extends Entity {
   defineId() {
     return this.createField({
-      schema: z.instanceof(UniqueEntityId),
-      default: new UniqueEntityId(),
+      schema: UniqueEntityId.schema,
+      default: new UniqueEntityId().value,
+      transform: (val: string) => new UniqueEntityId(val),
       static: true,
       readonly: true,
     });
@@ -81,6 +85,12 @@ class sut extends Entity {
     });
   }
 
+  public static get create() {
+    const fakeEntity = new this();
+
+    return fakeEntity.createEntity.bind(fakeEntity);
+  }
+
   public static get baseSchema() {
     return new this().baseSchema;
   }
@@ -92,18 +102,14 @@ class sut extends Entity {
   public static get updateSchema() {
     return new this().updateSchema;
   }
-
-  public static create(input: FakeUserEntityCreate) {
-    return new this().createEntity(input);
-  }
 }
 
-const input: FakeUserEntityCreate = {
+const input = {
   firstName: faker.person.firstName(),
   fullName: faker.person.fullName(),
   email: faker.internet.email(),
   password: faker.number.int(),
-};
+} satisfies FakeUserEntityCreate;
 
 describe("[Core] Domain Entity", () => {
   describe("creation entity", () => {
@@ -116,6 +122,27 @@ describe("[Core] Domain Entity", () => {
       });
     });
 
+    it("should be able to create a reference entity", () => {
+      const user = sut.create(input);
+
+      const referenceInput = {
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
+        fullName: faker.person.fullName(),
+        email: faker.internet.email(),
+        password: faker.number.int(),
+        updatedAt: faker.date.recent(),
+      } satisfies FakeUserEntityCreateReference;
+
+      const userReference = sut.create(user.id.value, referenceInput);
+
+      expect(userReference).toMatchObject({
+        ...referenceInput,
+        id: user.id,
+        password: referenceInput.password?.toString(),
+      });
+    });
+
     it("should be able to create an entity with default fields", () => {
       const user = sut.create(input);
 
@@ -125,10 +152,6 @@ describe("[Core] Domain Entity", () => {
     it("should be able to create an entity with fields inherited from sub classes", () => {
       const defaultHeight = faker.number.int();
       class AnotherFakeUserEntity extends sut {
-        static create(input: EntityDataCreate<AnotherFakeUserEntity>) {
-          return new this().createEntity(input);
-        }
-
         defineFirstName() {
           return this.createField({
             ...super.defineFirstName(),
@@ -141,6 +164,12 @@ describe("[Core] Domain Entity", () => {
             schema: z.number(),
             default: defaultHeight,
           });
+        }
+
+        public static get create() {
+          const fakeEntity = new this();
+
+          return fakeEntity.createEntity.bind(fakeEntity);
         }
       }
 
@@ -370,8 +399,7 @@ describe("[Core] Domain Entity", () => {
       });
 
       it("should be able to dispatch definition event when the field was not created but has a default value", () => {
-        // eslint-disable-next-line
-        const { lastName, ...inputWithoutLastName } = input;
+        const inputWithoutLastName = input;
         const user = sut.create(inputWithoutLastName);
 
         user.update({ age: faker.number.int() });

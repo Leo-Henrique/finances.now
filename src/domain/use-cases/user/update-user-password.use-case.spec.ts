@@ -6,7 +6,7 @@ import {
 } from "@/domain/errors";
 import { faker } from "@faker-js/faker";
 import { makeUser } from "test/factories/make-user";
-import { FakePasswordHasher } from "test/gateways/auth/fake-password-hasher";
+import { FakePasswordHasher } from "test/gateways/cryptology/fake-password-hasher";
 import { InMemoryUserRepository } from "test/repositories/in-memory-user.repository";
 import { beforeEach, describe, expect, it } from "vitest";
 import { UpdateUserPasswordUseCase } from "./update-user-password.use-case";

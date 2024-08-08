@@ -7,7 +7,7 @@ import {
   ResourceNotFoundError,
   UnauthorizedError,
 } from "@/domain/errors";
-import { PasswordHasher } from "@/domain/gateways/auth/password-hasher";
+import { PasswordHasher } from "@/domain/gateways/cryptology/password-hasher";
 import { UserRepository } from "@/domain/repositories/user.repository";
 import { z } from "zod";
 

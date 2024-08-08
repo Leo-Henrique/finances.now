@@ -9,25 +9,24 @@ import { Entity } from "@/core/entities/entity";
 import { UniqueEntityId } from "@/core/entities/unique-entity-id";
 import { z } from "zod";
 
-export type AccountActivationToken =
-  EntityInstance<AccountActivationTokenEntity>;
+export type UserActivationToken = EntityInstance<UserActivationTokenEntity>;
 
-export type AccountActivationTokenData =
-  EntityData<AccountActivationTokenEntity>;
+export type UserActivationTokenData = EntityData<UserActivationTokenEntity>;
 
-export type AccountActivationTokenDataCreate =
-  EntityDataCreate<AccountActivationTokenEntity>;
+export type UserActivationTokenDataCreate =
+  EntityDataCreate<UserActivationTokenEntity>;
 
-export type AccountActivationTokenDataUpdate =
-  EntityDataUpdate<AccountActivationTokenEntity>;
+export type UserActivationTokenDataUpdate =
+  EntityDataUpdate<UserActivationTokenEntity>;
 
-export type AccountActivationTokenDataUpdated =
-  EntityDataUpdated<AccountActivationTokenEntity>;
+export type UserActivationTokenDataUpdated =
+  EntityDataUpdated<UserActivationTokenEntity>;
 
-export class AccountActivationTokenEntity extends Entity {
+export class UserActivationTokenEntity extends Entity {
   defineUserId() {
     return this.createField({
-      schema: z.instanceof(UniqueEntityId),
+      schema: UniqueEntityId.schema,
+      transform: (val: string) => new UniqueEntityId(val),
       readonly: true,
     });
   }
@@ -50,8 +49,10 @@ export class AccountActivationTokenEntity extends Entity {
     });
   }
 
-  public static create(input: AccountActivationTokenDataCreate) {
-    return new this().createEntity(input);
+  public static get create() {
+    const userActivationToken = new this();
+
+    return userActivationToken.createEntity.bind(userActivationToken);
   }
 
   public static get baseSchema() {

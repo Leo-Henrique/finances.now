@@ -4,15 +4,15 @@ import { UseCase } from "@/core/use-case";
 import { SessionEntity } from "@/domain/entities/session.entity";
 import { User, UserEntity } from "@/domain/entities/user.entity";
 import { ForbiddenActionError, InvalidCredentialsError } from "@/domain/errors";
-import { Encryption } from "@/domain/gateways/auth/encryption";
-import { PasswordHasher } from "@/domain/gateways/auth/password-hasher";
+import { Encryption } from "@/domain/gateways/cryptology/encryption";
+import { PasswordHasher } from "@/domain/gateways/cryptology/password-hasher";
 import { SessionRepository } from "@/domain/repositories/session.repository";
 import { UserRepository } from "@/domain/repositories/user.repository";
 import { z } from "zod";
 import {
-  RequestAccountActivationUseCase,
   RequestAccountActivationUseCaseOutput,
-} from "../user/request-account-activation.use-case";
+  RequestUserAccountActivationUseCase,
+} from "../user/request-user-account-activation.use-case";
 
 const authenticateUseCaseSchema = UserEntity.createSchema.pick({
   email: true,
@@ -34,7 +34,7 @@ type AuthenticateUseCaseOutput = Either<
 type AuthenticateUseCaseDeps = {
   userRepository: UserRepository;
   passwordHasher: PasswordHasher;
-  requestAccountActivationUseCase: RequestAccountActivationUseCase;
+  requestAccountActivationUseCase: RequestUserAccountActivationUseCase;
   encryption: Encryption;
   sessionRepository: SessionRepository;
 };

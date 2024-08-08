@@ -2,12 +2,12 @@ import { EntityDataUpdated, EntityInstance } from "../@types/entity";
 import { Entity } from "../entities/entity";
 import { UniqueEntityId } from "../entities/unique-entity-id";
 
-export interface BaseRepository<
+export abstract class BaseRepository<
   Class extends Entity,
   DomainEntity extends EntityInstance<Class> & { id: UniqueEntityId },
   DataUpdated extends EntityDataUpdated<Class>,
 > {
-  create(domainEntity: DomainEntity): Promise<void>;
-  update(domainEntity: DomainEntity, data: DataUpdated): Promise<void>;
-  delete(domainEntity: DomainEntity): Promise<void>;
+  abstract create(domainEntity: DomainEntity): Promise<void>;
+  abstract update(domainEntity: DomainEntity, data: DataUpdated): Promise<void>;
+  abstract delete(domainEntity: DomainEntity): Promise<void>;
 }

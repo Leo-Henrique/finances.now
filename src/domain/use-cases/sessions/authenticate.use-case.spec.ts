@@ -2,22 +2,22 @@ import { ValidationError } from "@/core/errors/errors";
 import { ForbiddenActionError, InvalidCredentialsError } from "@/domain/errors";
 import { faker } from "@faker-js/faker";
 import { makeUser } from "test/factories/make-user";
-import { FakeEncryption } from "test/gateways/auth/fake-encryption";
-import { FakePasswordHasher } from "test/gateways/auth/fake-password-hasher";
+import { FakeEncryption } from "test/gateways/cryptology/fake-encryption";
+import { FakePasswordHasher } from "test/gateways/cryptology/fake-password-hasher";
 import { FakeEmailDispatcher } from "test/gateways/fake-email-dispatcher";
 import { InMemoryAccountActivationTokenRepository } from "test/repositories/in-memory-account-activation-token.repository";
 import { InMemorySessionRepository } from "test/repositories/in-memory-session.repository";
 import { InMemoryUserRepository } from "test/repositories/in-memory-user.repository";
 import { beforeEach, describe, expect, it } from "vitest";
 import { AuthenticateUseCase } from "../sessions/authenticate.use-case";
-import { RequestAccountActivationUseCase } from "../user/request-account-activation.use-case";
+import { RequestUserAccountActivationUseCase } from "../user/request-user-account-activation.use-case";
 
 let userRepository: InMemoryUserRepository;
 let passwordHasher: FakePasswordHasher;
 let encryption: FakeEncryption;
 let accountActivationTokenRepository: InMemoryAccountActivationTokenRepository;
 let emailDispatcher: FakeEmailDispatcher;
-let requestAccountActivationUseCase: RequestAccountActivationUseCase;
+let requestAccountActivationUseCase: RequestUserAccountActivationUseCase;
 let sessionRepository: InMemorySessionRepository;
 
 let sut: AuthenticateUseCase;
@@ -33,7 +33,7 @@ describe("[Use Case] Authenticate user", () => {
     accountActivationTokenRepository =
       new InMemoryAccountActivationTokenRepository({ userRepository });
     emailDispatcher = new FakeEmailDispatcher();
-    requestAccountActivationUseCase = new RequestAccountActivationUseCase({
+    requestAccountActivationUseCase = new RequestUserAccountActivationUseCase({
       accountActivationTokenRepository,
       emailDispatcher,
       encryption,

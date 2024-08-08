@@ -46,13 +46,13 @@ export class FailedToSendEmailForActivationAccountError extends DomainError {
   }
 }
 
-export class AccountActivationTokenExpiredError extends DomainError {
-  public error = "AccountActivationTokenExpiredError" as const;
+export class UserActivationTokenExpiredError extends DomainError {
+  public error = "UserActivationTokenExpiredError" as const;
   public debug = null;
 
   constructor() {
     super(
-      `O token de ativação de conta está expirado. Faça login para obter um novo token.`,
+      `A confirmação de e-mail que foi solicitada expirou. Faça login para abrir uma nova solicitação.`,
     );
   }
 }

@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   EntityData,
   EntityDataCreate,
+  EntityDataCreateReference,
   EntityDataCreateZodShape,
   EntityDataEarlyUpdate,
   EntityDataUpdate,
@@ -328,7 +329,44 @@ export abstract class Entity {
     return params;
   }
 
-  protected createEntity(input: EntityDataCreate<this>) {
+  /**
+   * Creates the entity by applying default values and transforming the received data for each field as defined by createField().
+   *
+   * Mainly useful for the first creation of the entity.
+   *
+   * @param input - All fields defined with createField() that are not marked with ```default``` and / or ```static: true``` requiring field types before transformation.
+   */
+  protected createEntity(input: EntityDataCreate<this>): EntityInstance<this>;
+  /**
+   * Same as the following overload, however it requires all fields of the entity.
+   *
+   * ```
+   * Entity.createEntity(input: EntityDataCreate<this>): EntityInstance<this>
+   * ```
+   *
+   * Useful mainly to create references after a query of the entity in the real database.
+   *
+   * @param id - The existing id of the entity. Pass null if the entity does not have an id.
+   * @param inputReference - All fields defined with createField(), requiring field types before transformation.
+   */
+  protected createEntity(
+    id: string | null,
+    inputReference: EntityDataCreateReference<this>,
+  ): EntityInstance<this>;
+  protected createEntity(
+    idOrInput: EntityDataCreate<this> | string | null,
+    inputReference?: EntityDataCreateReference<this>,
+  ) {
+    let input: Record<string, unknown> = {};
+
+    if (idOrInput) {
+      if (typeof idOrInput === "string") input.id = idOrInput;
+
+      if (typeof idOrInput === "object") input = idOrInput;
+    }
+
+    if (inputReference) input = { ...input, ...inputReference };
+
     const { mountedFields, events } = this.mountFields(input, {
       isCreation: true,
     });

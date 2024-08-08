@@ -31,3 +31,15 @@ export type EntityDataCreate<Class extends Entity> = z.infer<
       : z.ZodOptional<GetFieldDefinition<Class[K], "schema">>;
   }>
 >;
+
+export type EntityDataCreateReference<Class extends Entity> = Omit<
+  z.infer<
+    z.ZodObject<{
+      [K in keyof Class as FieldName<K>]: GetFieldDefinition<
+        Class[K],
+        "schema"
+      >;
+    }>
+  >,
+  "id"
+>;

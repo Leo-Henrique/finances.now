@@ -4,23 +4,23 @@ import { Password } from "@/domain/entities/value-objects/password";
 import { ResourceAlreadyExistsError } from "@/domain/errors";
 import { faker } from "@faker-js/faker";
 import { makeUser } from "test/factories/make-user";
-import { FakeEncryption } from "test/gateways/auth/fake-encryption";
-import { FakePasswordHasher } from "test/gateways/auth/fake-password-hasher";
+import { FakeEncryption } from "test/gateways/cryptology/fake-encryption";
+import { FakePasswordHasher } from "test/gateways/cryptology/fake-password-hasher";
 import { FakeEmailDispatcher } from "test/gateways/fake-email-dispatcher";
 import { FakeUnitOfWork } from "test/gateways/fake-unit-of-work";
-import { InMemoryAccountActivationTokenRepository } from "test/repositories/in-memory-account-activation-token.repository";
+import { InMemoryUserActivationTokenRepository } from "test/repositories/in-memory-user-activation-token.repository";
 import { InMemoryUserRepository } from "test/repositories/in-memory-user.repository";
 import { beforeEach, describe, expect, it } from "vitest";
 import { RegisterUserUseCase } from "./register-user.use-case";
-import { RequestAccountActivationUseCase } from "./request-account-activation.use-case";
+import { RequestUserAccountActivationUseCase } from "./request-user-account-activation.use-case";
 
 let userRepository: InMemoryUserRepository;
+let userActivationTokenRepository: InMemoryUserActivationTokenRepository;
 let passwordHasher: FakePasswordHasher;
 let unitOfWork: FakeUnitOfWork;
-let accountActivationTokenRepository: InMemoryAccountActivationTokenRepository;
 let encryption: FakeEncryption;
 let emailDispatcher: FakeEmailDispatcher;
-let requestAccountActivationUseCase: RequestAccountActivationUseCase;
+let requestUserAccountActivationUseCase: RequestUserAccountActivationUseCase;
 
 let sut: RegisterUserUseCase;
 
@@ -29,23 +29,25 @@ let user: ReturnType<typeof makeUser>;
 describe("[Use Case] Register user", () => {
   beforeEach(() => {
     userRepository = new InMemoryUserRepository();
+    userActivationTokenRepository = new InMemoryUserActivationTokenRepository({
+      userRepository,
+    });
     passwordHasher = new FakePasswordHasher();
     unitOfWork = new FakeUnitOfWork();
-    accountActivationTokenRepository =
-      new InMemoryAccountActivationTokenRepository({ userRepository });
     encryption = new FakeEncryption();
     emailDispatcher = new FakeEmailDispatcher();
-    requestAccountActivationUseCase = new RequestAccountActivationUseCase({
-      accountActivationTokenRepository,
-      encryption,
-      emailDispatcher,
-    });
+    requestUserAccountActivationUseCase =
+      new RequestUserAccountActivationUseCase({
+        encryption,
+        emailDispatcher,
+      });
 
     sut = new RegisterUserUseCase({
       userRepository,
+      userActivationTokenRepository,
       passwordHasher,
       unitOfWork,
-      requestAccountActivationUseCase,
+      requestUserAccountActivationUseCase,
     });
 
     user = makeUser();
@@ -58,6 +60,12 @@ describe("[Use Case] Register user", () => {
     expect(result.user.id).toBeInstanceOf(UniqueEntityId);
     expect(result.user.email).toEqual(user.input.email);
     expect(userRepository.items[0]).toMatchObject(result.user);
+    expect(userActivationTokenRepository.items[0].userId.value).toEqual(
+      userRepository.items[0].id.value,
+    );
+    expect(
+      userActivationTokenRepository.items[0].expiresAt.getTime(),
+    ).toBeGreaterThan(Date.now());
   });
 
   it("should be able to create a user with hashed password and not return it", async () => {

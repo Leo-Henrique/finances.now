@@ -5,8 +5,9 @@ import { UniqueEntityId } from "./unique-entity-id";
 export abstract class BaseEntity extends Entity {
   defineId() {
     return this.createField({
-      schema: z.instanceof(UniqueEntityId),
-      default: new UniqueEntityId(),
+      schema: UniqueEntityId.schema,
+      default: new UniqueEntityId().value,
+      transform: (val: string) => new UniqueEntityId(val),
       static: true,
       readonly: true,
     });

@@ -1,4 +1,4 @@
-import { PasswordHasher } from "@/domain/gateways/auth/password-hasher";
+import { PasswordHasher } from "@/domain/gateways/cryptology/password-hasher";
 
 const FAKE_HASHED_PASSWORD_SUFFIX = "_HASHED";
 

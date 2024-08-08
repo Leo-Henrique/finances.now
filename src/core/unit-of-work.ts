@@ -1,6 +1,6 @@
-export interface UnitOfWork {
-  begin(): Promise<void>;
-  commit(): Promise<void>;
-  rollback(): Promise<void>;
-  transaction<T>(work: () => Promise<T>): Promise<T>;
+export abstract class UnitOfWork {
+  abstract begin(): Promise<void>;
+  abstract commit(): Promise<void>;
+  abstract rollback(): Promise<void>;
+  abstract transaction<T>(work: () => Promise<T>): Promise<T>;
 }

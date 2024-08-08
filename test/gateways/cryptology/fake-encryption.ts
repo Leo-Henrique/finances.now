@@ -1,4 +1,4 @@
-import { Encryption } from "@/domain/gateways/auth/encryption";
+import { Encryption } from "@/domain/gateways/cryptology/encryption";
 import { faker } from "@faker-js/faker";
 
 export class FakeEncryption implements Encryption {

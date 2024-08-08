@@ -1,13 +1,12 @@
 import { Module } from "@nestjs/common";
 import { APP_FILTER } from "@nestjs/core";
-import { HelloMultipartController } from "./controllers/hello/hello-multipart.controller";
-import { HelloController } from "./controllers/hello/hello.controller";
 import { FastifyMulterEventModule } from "./events/fastify-multer.event.module";
 import { DomainExceptionFilter } from "./filters/domain-exception.filter";
 import { HttpExceptionFilter } from "./filters/http-exception.filter";
+import { UserModule } from "./route-modules/user.module";
 
 @Module({
-  imports: [FastifyMulterEventModule],
+  imports: [FastifyMulterEventModule, UserModule],
   providers: [
     {
       provide: APP_FILTER,
@@ -18,6 +17,5 @@ import { HttpExceptionFilter } from "./filters/http-exception.filter";
       useClass: HttpExceptionFilter,
     },
   ],
-  controllers: [HelloController, HelloMultipartController],
 })
 export class HttpModule {}

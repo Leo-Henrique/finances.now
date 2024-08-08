@@ -55,8 +55,10 @@ export class UserEntity extends BaseEntity {
     return rest;
   }
 
-  public static create(input: UserDataCreate) {
-    return new this().createEntity(input);
+  public static get create() {
+    const userEntity = new this();
+
+    return userEntity.createEntity.bind(userEntity);
   }
 
   public static get baseSchema() {
